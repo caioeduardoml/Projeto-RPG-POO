@@ -1,0 +1,24 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "C/C++ Runner: Debug Session",
+      "type": "cppdbg",
+      "request": "launch",
+      "args": [],
+      "stopAtEntry": false,
+      "externalConsole": false,
+      "cwd": "/home/eduardocosta/Área de trabalho/ Universidade Tecnológica Federal do Paraná/4º Semestre/Programação Orientada a Objetos/Projeto-RPG-POO",
+      "program": "/home/eduardocosta/Área de trabalho/ Universidade Tecnológica Federal do Paraná/4º Semestre/Programação Orientada a Objetos/Projeto-RPG-POO/build/Debug/outDebug",
+      "MIMode": "gdb",
+      "miDebuggerPath": "gdb",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ]
+    }
+  ]
+}
