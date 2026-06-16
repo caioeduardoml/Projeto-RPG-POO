@@ -1,17 +1,12 @@
 #ifndef ARQUEIRO_HPP
 #define ARQUEIRO_HPP
 
-#include "Jogador.hpp"
+#include "Personagem.hpp"
 
-class Arqueiro : public Jogador {
-private:
-    float destreza;         
-    float agilidade; 
+class Arqueiro : public Personagem {
 public:
-    Arqueiro(string p_nome, int p_nivel, float p_vida, float p_destreza, float p_agilidade);
+    Arqueiro(string p_nome, Raca* p_raca, int p_nivel);
     void subirNivel() override;
-    void exibirOpcoesAtaque() const override;
-    float realizarAtaque(int escolha) override;
 };
 
 #endif // ARQUEIRO_HPP

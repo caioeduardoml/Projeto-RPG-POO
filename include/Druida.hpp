@@ -1,16 +1,12 @@
 #ifndef DRUIDA_HPP
 #define DRUIDA_HPP
 
-#include "Jogador.hpp"
+#include "Personagem.hpp"
 
-class Druida : public Jogador {
-private:
-    float sabedoria; 
+class Druida : public Personagem {
 public:
-    Druida(string p_nome, int p_nivel, float p_vida, float p_sabedoria);
+    Druida(string p_nome, Raca* p_raca, int p_nivel);
     void subirNivel() override;
-    void exibirOpcoesAtaque() const override;
-    float realizarAtaque(int escolha) override;
 };
 
 #endif // DRUIDA_HPP

@@ -1,16 +1,12 @@
 #ifndef MAGO_HPP
 #define MAGO_HPP
 
-#include "Jogador.hpp"
+#include "Personagem.hpp"
 
-class Mago : public Jogador {
-private:
-    float inteligencia; 
+class Mago : public Personagem {
 public:
-    Mago(string p_nome, int p_nivel, float p_vida, float p_inteligencia);
+    Mago(string p_nome, Raca* p_raca, int p_nivel);
     void subirNivel() override;
-    void exibirOpcoesAtaque() const override;
-    float realizarAtaque(int escolha) override;
 };
 
 #endif // MAGO_HPP

@@ -1,16 +1,12 @@
 #ifndef GUERREIRO_HPP
 #define GUERREIRO_HPP
 
-#include "Jogador.hpp"
+#include "Personagem.hpp"
 
-class Guerreiro : public Jogador {
-private:
-    float forca; 
+class Guerreiro : public Personagem {
 public:
-    Guerreiro(string p_nome, int p_nivel, float p_vida, float p_forca);
+    Guerreiro(string p_nome, Raca* p_raca, int p_nivel);
     void subirNivel() override;
-    void exibirOpcoesAtaque() const override;
-    float realizarAtaque(int escolha) override;
 };
 
 #endif // GUERREIRO_HPP

@@ -1,118 +1,99 @@
 #include <iostream>
 #include <vector>
-#include <cstdlib>
-#include <ctime>
 
-#include "../include/Jogador.hpp"
+#include "../include/Personagem.hpp"
 #include "../include/Guerreiro.hpp"
 #include "../include/Mago.hpp"
 #include "../include/Druida.hpp"
 #include "../include/Arqueiro.hpp"
 #include "../include/Ladrao.hpp"
-#include "../include/Monstro.hpp"
 #include "../include/ConstrutorEnergia.hpp"
+#include "../include/Raca.hpp"
+#include "../include/Item.hpp"
+#include "../include/Batalha.hpp"
+#include "../include/Persistencia.hpp"
 
 using namespace std;
 
-int main() {
-    srand(static_cast<unsigned int>(time(nullptr)));
+Personagem* criarPersonagem() {
+    int escolhaClasse, escolhaRaca;
+    string nome;
 
+    cout << "Digite o nome do seu herói: ";
+    cin >> ws; // clear whitespace
+    getline(cin, nome);
+
+    cout << "\nEscolha sua Raça:\n";
+    cout << "1. Humano\n2. Elfo\n3. Anão\n4. Orc\n5. Dragão\n";
+    cout << "Opção: ";
+    cin >> escolhaRaca;
+
+    Raca* raca = nullptr;
+    switch (escolhaRaca) {
+        case 1: raca = new Humano(); break;
+        case 2: raca = new Elfo(); break;
+        case 3: raca = new Anao(); break;
+        case 4: raca = new Orc(); break;
+        case 5: raca = new Dragao(); break;
+        default: raca = new Humano(); break;
+    }
+
+    cout << "\nEscolha sua Classe:\n";
+    cout << "1. Guerreiro\n2. Mago\n3. Arqueiro\n4. Druida\n5. Ladrão\n6. Construtor de Energia\n";
+    cout << "Opção: ";
+    cin >> escolhaClasse;
+
+    Personagem* p = nullptr;
+    switch (escolhaClasse) {
+        case 1: p = new Guerreiro(nome, raca, 1); break;
+        case 2: p = new Mago(nome, raca, 1); break;
+        case 3: p = new Arqueiro(nome, raca, 1); break;
+        case 4: p = new Druida(nome, raca, 1); break;
+        case 5: p = new Ladrao(nome, raca, 1); break;
+        case 6: p = new ConstrutorEnergia(nome, raca, 1); break;
+        default: p = new Guerreiro(nome, raca, 1); break;
+    }
+    return p;
+}
+
+int main() {
     cout << "=======================================\n";
     cout << "       BEM-VINDO À ARENA RPG!        \n";
     cout << "=======================================\n\n";
 
-    vector<Jogador*> heroisDisponiveis;
-    heroisDisponiveis.push_back(new Guerreiro("Guts - Guerreiro", 15, 250.0f, 30.0f));
-    heroisDisponiveis.push_back(new Mago("Gandalf - Mago", 20, 120.0f, 40.0f)); 
-    heroisDisponiveis.push_back(new Druida("JoãoFrango - Druida", 15, 180.0f, 25.0f)); 
-    heroisDisponiveis.push_back(new Arqueiro("VolinHabba - Arqueiro", 15, 120.0f, 15.0f, 20.0f)); 
-    heroisDisponiveis.push_back(new ConstrutorEnergia("Goku - Construtor de Energia", 69, 999.0f, 96.0f));
-    heroisDisponiveis.push_back(new Ladrao("Garrett - Ladrao", 12, 100.0f, 22.0f, 0.35f)); 
+    Personagem* meuHeroi = criarPersonagem();
 
-    cout << "Escolha o seu Herói:\n";
-    for (size_t i = 0; i < heroisDisponiveis.size(); ++i) {
-        cout << i + 1 << ". ";
-        heroisDisponiveis[i]->exibirStatus();
-    }
+    // Dando alguns itens para demonstrar o inventário
+    meuHeroi->getInventario().adicionarItem(new Arma("Espada Longa", "Uma espada de aço afiada", 3.0f, 15.0f));
+    meuHeroi->getInventario().adicionarItem(new Pocao("Poção de Cura", "Restaura 50 de vida", 0.5f, 50.0f));
+    meuHeroi->getInventario().adicionarItem(new PocaoEnergia("Poção de Energia", "Restaura 30 de energia", 0.5f, 30.0f));
+    meuHeroi->getInventario().adicionarItem(new BombaCaseira("Bomba Caseira", "Causa 40 de dano ao inimigo", 1.0f, 40.0f));
 
-    int escolhaHeroi = -1;
-    while (escolhaHeroi < 1 || escolhaHeroi > static_cast<int>(heroisDisponiveis.size())) {
-        cout << "\nDigite o número do herói que deseja jogar: ";
-        cin >> escolhaHeroi;
-        if (cin.fail()) {
-            cin.clear();
-            cin.ignore(10000, '\n');
-            escolhaHeroi = -1;
-        }
-    }
+    cout << "\nSeu Herói foi criado!\n";
+    cout << *meuHeroi << "\n"; // Testa a sobrecarga do operador <<
+    meuHeroi->getInventario().listarItens();
+    cout << "\n";
 
-    Jogador* meuHeroi = heroisDisponiveis[escolhaHeroi - 1];
-    cout << "\nVocê escolheu jogar com " << meuHeroi->getNome() << "!\n\n";
-
-    // Cria a sequência de monstros (Torre)
+    // Criando monstros
     vector<Monstro*> monstros;
     monstros.push_back(new Goblin());
-    monstros.push_back(new Orc());
-    monstros.push_back(new Dragao());
+    monstros.push_back(new OrcMonstro());
+    monstros.push_back(new GiganteMalvado());
 
     bool venceuTudo = true;
 
     for (size_t i = 0; i < monstros.size(); ++i) {
-        Monstro* inimigo = monstros[i];
-        cout << "=======================================\n";
-        cout << " BATALHA " << i + 1 << ": " << inimigo->getNome() << " apareceu!\n";
-        cout << "=======================================\n";
-
-        int turno = 1;
-
-        while (meuHeroi->isVivo() && inimigo->isVivo()) {
-            cout << "\n--- Turno " << turno << " ---\n";
-            
-            // Turno do Herói
-            meuHeroi->recuperarEnergia(10.0f); 
-            cout << "[Seu Status] ";
-            meuHeroi->exibirStatus();
-            cout << "[Inimigo]    ";
-            inimigo->exibirStatus();
-            cout << "\n";
-
-            meuHeroi->exibirOpcoesAtaque();
-            int escolhaAtaque;
-            cout << "Escolha seu ataque: ";
-            cin >> escolhaAtaque;
-
-            if (cin.fail()) {
-                cin.clear();
-                cin.ignore(10000, '\n');
-                escolhaAtaque = 1; // Default
-            }
-
-            cout << "\n";
-            float danoCausado = meuHeroi->realizarAtaque(escolhaAtaque);
-            inimigo->receberDano(danoCausado);
-
-            if (!inimigo->isVivo()) {
-                cout << "\n>>> VOCÊ DERROTOU O " << inimigo->getNome() << "! <<<\n\n";
-                meuHeroi->subirNivel();
-                break;
-            }
-
-            // Turno do Inimigo
-            inimigo->recuperarEnergia(5.0f);
-            float danoSofrido = inimigo->realizarAtaque(0); // IA não precisa de escolha
-            meuHeroi->receberDano(danoSofrido);
-
-            if (!meuHeroi->isVivo()) {
-                cout << "\n>>> " << meuHeroi->getNome() << " CAIU EM BATALHA... GAME OVER <<<\n";
-                venceuTudo = false;
-                break;
-            }
-
-            turno++;
+        Batalha batalha(meuHeroi, monstros[i]);
+        if (!batalha.iniciar()) {
+            venceuTudo = false;
+            break;
         }
 
-        if (!meuHeroi->isVivo()) {
-            break; // Sai do loop de monstros se morreu
+        int opcao;
+        cout << "Deseja salvar o jogo? (1 para Sim, 0 para Não): ";
+        cin >> opcao;
+        if (opcao == 1) {
+            Persistencia::salvarJogo(meuHeroi, "savegame.txt");
         }
     }
 
@@ -123,10 +104,8 @@ int main() {
         cout << "=======================================\n";
     }
 
-    // Limpeza de memória
-    for (Jogador* h : heroisDisponiveis) {
-        delete h;
-    }
+    // Limpeza
+    delete meuHeroi;
     for (Monstro* m : monstros) {
         delete m;
     }
