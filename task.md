@@ -1,24 +1,25 @@
 # RPG Manager - Tarefas de Implementação
 
 - [x] 1. **Configuração e Testes**
-  - [x] Atualizar o Makefile para suportar C++17 e diretório de testes (`tests/`).
-  - [x] Verificar a disponibilidade do Google Test (gtest) no ambiente.
+  - [x] Atualizar o Makefile para suportar C++17.
 - [x] 2. **Núcleo de Entidades**
   - [x] Criar classe `Entidade` (abstrata).
   - [x] Criar classe `Personagem` herdando de `Entidade`.
   - [x] Atualizar `Monstro` para herdar de `Entidade`.
-- [x] 3. **Classes e Raças (RPG)**
-  - [x] Implementar classe `Raca` (Humano, Elfo, Anão, Orc).
-  - [x] Refatorar heróis (`Guerreiro`, `Mago`, `Arqueiro`, `Druida`, `Ladrao`, `ConstrutorEnergia`) para herdarem de `Personagem`.
-- [x] 4. **Inventário e Itens**
-  - [x] Criar classe `Item` e subclasses (`Arma`, `Armadura`, `Pocao`).
+- [ ] 3. **Classes e Raças (RPG)**
+  - [ ] Implementar classe `Raca` (Humano, Elfo, Anão, Orc, Dragao, Dragonado).
+  - [ ] Refatorar heróis (`Guerreiro`, `Mago`, `Arqueiro`, `Druida`, `Ladrao`, `ConstrutorEnergia`, `Invocador`,) para herdarem de `Personagem`.
+- [ ] 4. **Inventário e Itens**
+  - [ ] Criar classe `Item` e subclasses (`Arma`, `Armadura`, `Pocao`).
   - [x] Criar classe `Inventario` (Composição na classe `Personagem`).
 - [x] 5. **Habilidades**
   - [x] Criar classe abstrata `Habilidade` e subclasses (Ofensiva, Defensiva, Suporte).
-- [x] 6. **Sistema de Batalha**
+- [ ] 6. **Sistema de Batalha**
   - [x] Criar classe `Batalha` para gerenciar o loop de turnos.
-- [x] 7. **Persistência de Dados**
+  -[ ] Melhoramento do sistema de batalha
+- [ ] 7. **Persistência de Dados**
   - [x] Implementar salvamento e carregamento (formato texto simples/TXT).
+  - [ ] Implementar salvamento e carregamento.
 - [ ] 8. **Integração Final**
   - [x] Reescrever o `main.cpp` para usar os novos módulos (menu interativo completo).
   - [ ] Escrever testes unitários para a lógica crítica.
