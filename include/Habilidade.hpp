@@ -20,6 +20,7 @@ public:
     string getNome() const;
     string getDescricao() const;
     float getCustoEnergia() const;
+    virtual string getEfeitoStr() const { return ""; }
 
     virtual void usar(Entidade* usuario, Entidade* alvo) = 0;
 };
@@ -30,6 +31,7 @@ private:
 public:
     HabilidadeOfensiva(string p_nome, string p_descricao, float p_custoEnergia, float p_danoBase);
     void usar(Entidade* usuario, Entidade* alvo) override;
+    string getEfeitoStr() const override;
 };
 
 class HabilidadeDefensiva : public Habilidade {
@@ -38,6 +40,7 @@ private:
 public:
     HabilidadeDefensiva(string p_nome, string p_descricao, float p_custoEnergia, float p_aumentoDefesa);
     void usar(Entidade* usuario, Entidade* alvo) override;
+    string getEfeitoStr() const override;
 };
 
 class HabilidadeSuporte : public Habilidade {
@@ -46,6 +49,7 @@ private:
 public:
     HabilidadeSuporte(string p_nome, string p_descricao, float p_custoEnergia, float p_curaBase);
     void usar(Entidade* usuario, Entidade* alvo) override;
+    string getEfeitoStr() const override;
 };
 
 #endif // HABILIDADE_HPP

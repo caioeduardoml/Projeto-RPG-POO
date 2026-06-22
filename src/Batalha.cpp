@@ -1,5 +1,7 @@
 #include "../include/Batalha.hpp"
+#include "../include/Item.hpp"
 #include <iostream>
+#include <cstdlib>
 
 Batalha::Batalha(Personagem* p_heroi, Monstro* p_monstro)
     : heroi(p_heroi), monstro(p_monstro) {}
@@ -85,7 +87,14 @@ bool Batalha::iniciar() {
         if (!perdeuTurno) continue;
 
         if (!monstro->isVivo()) {
-            cout << "\n>>> VOCÊ DERROTOU O " << monstro->getNome() << "! <<<\n\n";
+            cout << "\n>>> VOCÊ DERROTOU O " << monstro->getNome() << "! <<<\n";
+            Item* drop = gerarDropAleatorio();
+            if (drop) {
+                cout << ">>> O monstro dropou: " << drop->getNome() << " (" << drop->getDescricao() << ") <<<\n\n";
+                heroi->getInventario().adicionarItem(drop);
+            } else {
+                cout << "\n";
+            }
             heroi->ganharExperiencia(50.0f * monstro->getNivel());
             return true;
         }
@@ -102,4 +111,28 @@ bool Batalha::iniciar() {
         turno++;
     }
     return false;
+}
+
+Item* Batalha::gerarDropAleatorio() {
+    int chance = rand() % 100;
+    if (chance < 40) { // 40% chance de consumível
+        int tipo = rand() % 3;
+        if (tipo == 0) return new Pocao("Poção de Vida", "Restaura 50 de vida", 0.5f, 50.0f);
+        if (tipo == 1) return new PocaoEnergia("Poção de Mana", "Restaura 30 de energia", 0.5f, 30.0f);
+        if (tipo == 2) return new BombaCaseira("Bomba Menor", "Causa 20 de dano", 1.0f, 20.0f);
+    } else if (chance < 70) { // 30% chance de arma/escudo
+        int tipo = rand() % 4;
+        if (tipo == 0) return new Arma("Espada de Aço", "Arma cortante", 3.0f, 20.0f);
+        if (tipo == 1) return new Arma("Cajado Místico", "Arma mágica", 2.0f, 15.0f);
+        if (tipo == 2) return new Arma("Arco Longo", "Ataque à distância", 3.0f, 18.0f);
+        if (tipo == 3) return new Armadura("Escudo de Madeira", "Proteção básica", 5.0f, 10.0f);
+    } else { // 30% chance de armadura/acessório
+        int tipo = rand() % 5;
+        if (tipo == 0) return new Armadura("Capacete de Ferro", "Protege a cabeça", 3.0f, 10.0f);
+        if (tipo == 1) return new Armadura("Peitoral de Aço", "Protege o torso", 8.0f, 20.0f);
+        if (tipo == 2) return new Armadura("Bota de Couro", "Protege os pés", 2.0f, 5.0f);
+        if (tipo == 3) return new Armadura("Anel da Força", "Aumenta atributos", 0.1f, 5.0f);
+        if (tipo == 4) return new Armadura("Colar Mágico", "Aumenta resistência", 0.2f, 8.0f);
+    }
+    return nullptr;
 }

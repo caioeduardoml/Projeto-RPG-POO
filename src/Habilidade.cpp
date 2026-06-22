@@ -1,6 +1,7 @@
 #include "../include/Habilidade.hpp"
 #include "../include/Entidade.hpp"
 #include <iostream>
+#include <string>
 
 // --- Habilidade ---
 Habilidade::Habilidade(string p_nome, string p_descricao, float p_custoEnergia)
@@ -19,6 +20,10 @@ void HabilidadeOfensiva::usar(Entidade* usuario, Entidade* alvo) {
     alvo->receberDano(danoBase); // Em um sistema completo, somaria com atributos do usuário
 }
 
+string HabilidadeOfensiva::getEfeitoStr() const {
+    return "(Dano: " + std::to_string(static_cast<int>(danoBase)) + ")";
+}
+
 // --- Habilidade Defensiva ---
 HabilidadeDefensiva::HabilidadeDefensiva(string p_nome, string p_descricao, float p_custoEnergia, float p_aumentoDefesa)
     : Habilidade(p_nome, p_descricao, p_custoEnergia), aumentoDefesa(p_aumentoDefesa) {}
@@ -29,6 +34,10 @@ void HabilidadeDefensiva::usar(Entidade* usuario, Entidade* /*alvo*/) {
     cout << usuario->getNome() << " usa " << nome << " e aumenta sua defesa! (Apenas cosmético nesta versão)\n";
 }
 
+string HabilidadeDefensiva::getEfeitoStr() const {
+    return "(Defesa: " + std::to_string(static_cast<int>(aumentoDefesa)) + ")";
+}
+
 // --- Habilidade Suporte ---
 HabilidadeSuporte::HabilidadeSuporte(string p_nome, string p_descricao, float p_custoEnergia, float p_curaBase)
     : Habilidade(p_nome, p_descricao, p_custoEnergia), curaBase(p_curaBase) {}
@@ -37,4 +46,8 @@ void HabilidadeSuporte::usar(Entidade* usuario, Entidade* alvo) {
     cout << usuario->getNome() << " usa " << nome << " em " << alvo->getNome() << "!\n";
     alvo->recuperarVida(curaBase);
     cout << alvo->getNome() << " recuperou " << curaBase << " pontos de vida.\n";
+}
+
+string HabilidadeSuporte::getEfeitoStr() const {
+    return "(Cura: " + std::to_string(static_cast<int>(curaBase)) + ")";
 }

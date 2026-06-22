@@ -9,9 +9,7 @@ using namespace std;
 class Persistencia {
 public:
     static bool salvarJogo(Personagem* personagem, const string& arquivo);
-    // Para simplificar, o carregarJogo retornaria os dados brutos ou instanciaria
-    // mas devido ao acoplamento com subclasses, faremos uma versão simples que
-    // só informa que salvou (pois instanciar subclasses dinamicamente requer um Factory)
+    static Personagem* carregarJogo(const string& arquivo);
 };
 
 #endif // PERSISTENCIA_HPP

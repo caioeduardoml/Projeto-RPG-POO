@@ -28,7 +28,8 @@ void Personagem::adicionarHabilidade(Habilidade* habilidade) {
 void Personagem::listarHabilidades() const {
     cout << "--- Habilidades de " << nome << " ---\n";
     for (size_t i = 0; i < habilidades.size(); ++i) {
-        cout << i+1 << ". " << habilidades[i]->getNome() << " - " << habilidades[i]->getDescricao() << "\n";
+        cout << i+1 << ". " << habilidades[i]->getNome() << " - " << habilidades[i]->getDescricao() 
+             << " " << habilidades[i]->getEfeitoStr() << "\n";
     }
 }
 
@@ -67,4 +68,15 @@ void Personagem::exibirStatus() const {
 ostream& operator<<(ostream& os, const Personagem& p) {
     os << "[" << p.nome << " Nv." << p.nivel << " " << p.classeRPG << "] Vida: " << p.vida << "/" << p.maxVida;
     return os;
+}
+
+void Personagem::restaurarEstado(int p_nivel_salvo, float p_xp, float p_vidaMax, float p_vidaAtual) {
+    while (this->nivel < p_nivel_salvo) {
+        this->nivel++;
+        this->expProximoNivel = 100.0f * this->nivel;
+        this->subirNivel();
+    }
+    this->experiencia = p_xp;
+    this->maxVida = p_vidaMax;
+    this->vida = p_vidaAtual;
 }

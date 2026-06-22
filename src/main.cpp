@@ -1,5 +1,8 @@
 #include <iostream>
 #include <vector>
+#include <fstream>
+#include <ctime>
+#include <cstdlib>
 
 #include "../include/Personagem.hpp"
 #include "../include/Guerreiro.hpp"
@@ -57,11 +60,28 @@ Personagem* criarPersonagem() {
 }
 
 int main() {
+    srand(time(0));
+
     cout << "=======================================\n";
     cout << "       BEM-VINDO À ARENA RPG!        \n";
     cout << "=======================================\n\n";
 
-    Personagem* meuHeroi = criarPersonagem();
+    Personagem* meuHeroi = nullptr;
+
+    ifstream in("savegame.txt");
+    if (in.is_open()) {
+        in.close();
+        int op;
+        cout << "Um jogo salvo foi encontrado. Deseja carregar? (1 para Sim, 0 para Novo Jogo): ";
+        cin >> op;
+        if (op == 1) {
+            meuHeroi = Persistencia::carregarJogo("savegame.txt");
+        }
+    }
+
+    if (!meuHeroi) {
+        meuHeroi = criarPersonagem();
+    }
 
     // Dando alguns itens para demonstrar o inventário
     meuHeroi->getInventario().adicionarItem(new Arma("Espada Longa", "Uma espada de aço afiada", 3.0f, 15.0f));

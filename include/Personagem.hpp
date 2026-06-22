@@ -37,6 +37,8 @@ public:
     void ganharExperiencia(float exp);
     virtual void subirNivel() = 0; // Pure virtual, must be implemented by concrete classes
 
+    void restaurarEstado(int p_nivel_salvo, float p_xp, float p_vidaMax, float p_vidaAtual);
+
     void receberDano(float dano) override;
     void exibirStatus() const override;
 

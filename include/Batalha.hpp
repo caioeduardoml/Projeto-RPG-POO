@@ -9,6 +9,8 @@ private:
     Personagem* heroi;
     Monstro* monstro;
 
+    class Item* gerarDropAleatorio();
+
 public:
     Batalha(Personagem* p_heroi, Monstro* p_monstro);
     
