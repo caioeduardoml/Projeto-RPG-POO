@@ -1,7 +1,7 @@
-Nome:CaioEduardo
+Nome:Caio
 Classe:Construtor de Energia
 Raca:Dragao
-Nivel:2
-XP:100
-VidaMax:230
-VidaAtual:230
+Nivel:1
+XP:50
+VidaMax:180
+VidaAtual:180
