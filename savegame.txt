@@ -1,7 +1,0 @@
-Nome:Caio
-Classe:Druida
-Raca:Anão
-Nivel:3
-XP:100
-VidaMax:170
-VidaAtual:170
