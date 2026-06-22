@@ -26,3 +26,5 @@ OrcMonstro::OrcMonstro() : Monstro("Orc Furioso", 3, 80.0f, 15.0f, 3.0f) {}
 GiganteMalvado::GiganteMalvado() : Monstro("Gigante Malvadão", 10, 300.0f, 50.0f, 40.0f) {}
 
 LoboMau::LoboMau() : Monstro("Lobo Mau", 5, 100.0f, 20.0f, 5.0f) {}
+
+PeppaPig::PeppaPig() : Monstro("Peppa Pig", 20, 1000.0f, 100.0f, 100.0f) {}

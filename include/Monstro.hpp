@@ -40,4 +40,9 @@ public:
     LoboMau();
 };
 
+class PeppaPig : public Monstro {
+    public:
+        PeppaPig();
+};
+
 #endif // MONSTRO_HPP

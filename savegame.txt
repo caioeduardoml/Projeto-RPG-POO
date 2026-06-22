@@ -1,7 +1,7 @@
-Nome:Kmeth
-Classe:Guerreiro
-Raca:Dragao
-Nivel:2
+Nome:Caio
+Classe:Druida
+Raca:Anão
+Nivel:3
 XP:100
-VidaMax:200
-VidaAtual:200
+VidaMax:170
+VidaAtual:170
