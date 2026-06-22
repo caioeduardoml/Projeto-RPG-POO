@@ -10,16 +10,15 @@
   - [ ] Implementar classe `Raca` (Humano, Elfo, Anão, Orc, Dragao, Dragonado).
   - [ ] Refatorar heróis (`Guerreiro`, `Mago`, `Arqueiro`, `Druida`, `Ladrao`, `ConstrutorEnergia`, `Invocador`,) para herdarem de `Personagem`.
 - [ ] 4. **Inventário e Itens**
-  - [ ] Criar classe `Item` e subclasses (`Arma`, `Armadura`, `Pocao`).
+  - [x] Criar classe `Item` e subclasses (`Arma`, `Armadura`, `Pocao`).
   - [x] Criar classe `Inventario` (Composição na classe `Personagem`).
 - [x] 5. **Habilidades**
   - [x] Criar classe abstrata `Habilidade` e subclasses (Ofensiva, Defensiva, Suporte).
 - [ ] 6. **Sistema de Batalha**
-  - [x] Criar classe `Batalha` para gerenciar o loop de turnos.
-  -[ ] Melhoramento do sistema de batalha
+  - [x] Criar classe `Batalha` para gerenciar o loop de turnos. -[ ] Melhoramento do sistema de batalha
 - [ ] 7. **Persistência de Dados**
   - [x] Implementar salvamento e carregamento (formato texto simples/TXT).
-  - [ ] Implementar salvamento e carregamento.
+  - [x] Implementar salvamento e carregamento.
 - [ ] 8. **Integração Final**
   - [x] Reescrever o `main.cpp` para usar os novos módulos (menu interativo completo).
   - [ ] Escrever testes unitários para a lógica crítica.
