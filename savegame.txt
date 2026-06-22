@@ -1,7 +1,7 @@
-Nome:Kmeth
-Classe:Guerreiro
-Raca:Dragao
+Nome:Astarion
+Classe:Ladrão
+Raca:Elfo
 Nivel:2
 XP:100
-VidaMax:200
-VidaAtual:200
+VidaMax:107
+VidaAtual:107

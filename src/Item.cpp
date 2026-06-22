@@ -1,5 +1,6 @@
 #include "../include/Item.hpp"
 #include "../include/Entidade.hpp"
+#include "../include/Personagem.hpp"
 #include <iostream>
 
 // --- Item ---
@@ -18,7 +19,12 @@ Arma::Arma(string p_nome, string p_descricao, float p_peso, float p_danoBonus)
 float Arma::getDanoBonus() const { return danoBonus; }
 
 void Arma::usar(Entidade* usuario, Entidade* /*alvo*/) {
-    cout << usuario->getNome() << " equipou a arma " << nome << " (+ " << danoBonus << " Dano)\n";
+    Personagem* p = dynamic_cast<Personagem*>(usuario);
+    if (p) {
+        p->equiparArma(this);
+    } else {
+        cout << usuario->getNome() << " equipou a arma " << nome << " (+ " << danoBonus << " Dano)\n";
+    }
 }
 
 // --- Armadura ---
@@ -28,7 +34,12 @@ Armadura::Armadura(string p_nome, string p_descricao, float p_peso, float p_defe
 float Armadura::getDefesaBonus() const { return defesaBonus; }
 
 void Armadura::usar(Entidade* usuario, Entidade* /*alvo*/) {
-    cout << usuario->getNome() << " equipou a armadura " << nome << " (+ " << defesaBonus << " Defesa)\n";
+    Personagem* p = dynamic_cast<Personagem*>(usuario);
+    if (p) {
+        p->equiparArmadura(this);
+    } else {
+        cout << usuario->getNome() << " equipou a armadura " << nome << " (+ " << defesaBonus << " Defesa)\n";
+    }
 }
 
 // --- Pocao ---

@@ -25,7 +25,7 @@ bool Batalha::iniciar() {
 
         heroi->listarHabilidades();
         int escolhaAtaque;
-        cout << "Escolha sua ação (-1 para Inventário, 0 para ataque básico, 1+ para habilidade): ";
+        cout << "Escolha sua ação (-2 para Equipamentos, -1 para Inventário, 0 para ataque básico, 1+ para habilidade): ";
         cin >> escolhaAtaque;
 
         if (cin.fail()) {
@@ -37,7 +37,22 @@ bool Batalha::iniciar() {
         cout << "\n";
         bool perdeuTurno = false;
         
-        if (escolhaAtaque == -1) {
+        if (escolhaAtaque == -2) {
+            heroi->exibirEquipamentos();
+            string slotEscolhido;
+            cout << "Digite o nome do slot para desequipar (Ex: Arma, Capacete) ou 0 para cancelar: ";
+            cin >> slotEscolhido;
+            if (slotEscolhido == "0") {
+                cout << "Ação cancelada. Turno reiniciado.\n";
+                continue;
+            } else if (slotEscolhido == "Arma" || slotEscolhido == "arma") {
+                heroi->desequiparArma();
+                continue;
+            } else {
+                heroi->desequiparArmadura(slotEscolhido);
+                continue;
+            }
+        } else if (escolhaAtaque == -1) {
             heroi->getInventario().listarItens();
             int escolhaItem;
             cout << "Escolha um item (0 para cancelar): ";
@@ -71,7 +86,7 @@ bool Batalha::iniciar() {
         } else if (escolhaAtaque == 0) {
             // Ataque básico
             cout << heroi->getNome() << " realiza um ataque básico!\n";
-            monstro->receberDano(10.0f); // Dano básico fixo para simplificar
+            monstro->receberDano(heroi->getDanoTotal());
             perdeuTurno = true;
         } else {
             Habilidade* hab = heroi->escolherHabilidade(escolhaAtaque - 1);

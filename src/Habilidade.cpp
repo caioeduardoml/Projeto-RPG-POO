@@ -1,5 +1,6 @@
 #include "../include/Habilidade.hpp"
 #include "../include/Entidade.hpp"
+#include "../include/Personagem.hpp"
 #include <iostream>
 #include <string>
 
@@ -17,7 +18,12 @@ HabilidadeOfensiva::HabilidadeOfensiva(string p_nome, string p_descricao, float 
 
 void HabilidadeOfensiva::usar(Entidade* usuario, Entidade* alvo) {
     cout << usuario->getNome() << " usa " << nome << " em " << alvo->getNome() << "!\n";
-    alvo->receberDano(danoBase); // Em um sistema completo, somaria com atributos do usuário
+    float danoFinal = danoBase;
+    Personagem* p = dynamic_cast<Personagem*>(usuario);
+    if (p) {
+        danoFinal += p->getDanoTotal();
+    }
+    alvo->receberDano(danoFinal);
 }
 
 string HabilidadeOfensiva::getEfeitoStr() const {

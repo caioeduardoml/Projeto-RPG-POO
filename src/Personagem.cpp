@@ -1,4 +1,5 @@
 #include "../include/Personagem.hpp"
+#include "../include/Item.hpp"
 #include <iostream>
 
 Personagem::Personagem(string p_nome, string p_classeRPG, Raca* p_raca, int p_nivel, float p_vidaBase, float p_forca, float p_inteligencia)
@@ -6,7 +7,8 @@ Personagem::Personagem(string p_nome, string p_classeRPG, Raca* p_raca, int p_ni
       classeRPG(p_classeRPG), raca(p_raca), experiencia(0.0f), expProximoNivel(100.0f * p_nivel), 
       inventario(50.0f), // 50kg de capacidade inicial
       forca(p_forca + (p_raca ? p_raca->getBonusForca() : 0.0f)),
-      inteligencia(p_inteligencia + (p_raca ? p_raca->getBonusInteligencia() : 0.0f)) {}
+      inteligencia(p_inteligencia + (p_raca ? p_raca->getBonusInteligencia() : 0.0f)),
+      armaEquipada(nullptr) {}
 
 Personagem::~Personagem() {
     delete raca;
@@ -14,6 +16,14 @@ Personagem::~Personagem() {
         delete hab;
     }
     habilidades.clear();
+    
+    if (armaEquipada) {
+        delete armaEquipada;
+    }
+    for (auto const& [key, val] : armadurasEquipadas) {
+        delete val;
+    }
+    armadurasEquipadas.clear();
 }
 
 string Personagem::getClasseRPG() const { return classeRPG; }
@@ -52,17 +62,19 @@ void Personagem::ganharExperiencia(float exp) {
 }
 
 void Personagem::receberDano(float dano) {
-    // Redução de dano simples (pode ser melhorado com armaduras)
-    float danoLiquido = dano;
+    float defesa = getDefesaTotal();
+    float danoLiquido = dano - defesa;
+    if (danoLiquido < 0) danoLiquido = 0;
     vida -= danoLiquido;
     if (vida < 0) vida = 0;
-    cout << "[" << nome << " recebe " << danoLiquido << " de dano!]\n";
+    cout << "[" << nome << " recebe " << danoLiquido << " de dano! (Defesa bloqueou " << (dano - danoLiquido) << ")]\n";
 }
 
 void Personagem::exibirStatus() const {
     Entidade::exibirStatus();
     cout << "| Classe: " << classeRPG << " | Raça: " << (raca ? raca->getNomeRaca() : "Nenhuma") 
-         << " | XP: " << experiencia << "/" << expProximoNivel << "\n";
+         << " | XP: " << experiencia << "/" << expProximoNivel << "\n"
+         << "| Dano Total: " << getDanoTotal() << " | Defesa Total: " << getDefesaTotal() << "\n";
 }
 
 ostream& operator<<(ostream& os, const Personagem& p) {
@@ -79,4 +91,63 @@ void Personagem::restaurarEstado(int p_nivel_salvo, float p_xp, float p_vidaMax,
     this->experiencia = p_xp;
     this->maxVida = p_vidaMax;
     this->vida = p_vidaAtual;
+}
+
+void Personagem::equiparArma(Arma* arma) {
+    if (armaEquipada) {
+        inventario.adicionarItem(armaEquipada);
+    }
+    armaEquipada = arma;
+    inventario.removerItem(arma);
+    cout << ">>> " << nome << " equipou " << arma->getNome() << "!\n";
+}
+
+void Personagem::equiparArmadura(Armadura* armadura) {
+    string slot = armadura->getNome().substr(0, armadura->getNome().find(' '));
+    if (armadurasEquipadas.find(slot) != armadurasEquipadas.end()) {
+        inventario.adicionarItem(armadurasEquipadas[slot]);
+    }
+    armadurasEquipadas[slot] = armadura;
+    inventario.removerItem(armadura);
+    cout << ">>> " << nome << " equipou " << armadura->getNome() << "!\n";
+}
+
+void Personagem::desequiparArma() {
+    if (armaEquipada) {
+        inventario.adicionarItem(armaEquipada);
+        cout << ">>> " << nome << " desequipou " << armaEquipada->getNome() << "!\n";
+        armaEquipada = nullptr;
+    }
+}
+
+void Personagem::desequiparArmadura(const string& slot) {
+    if (armadurasEquipadas.find(slot) != armadurasEquipadas.end()) {
+        inventario.adicionarItem(armadurasEquipadas[slot]);
+        cout << ">>> " << nome << " desequipou " << armadurasEquipadas[slot]->getNome() << "!\n";
+        armadurasEquipadas.erase(slot);
+    }
+}
+
+float Personagem::getDanoTotal() const {
+    float dano = forca;
+    if (armaEquipada) {
+        dano += armaEquipada->getDanoBonus();
+    }
+    return dano;
+}
+
+float Personagem::getDefesaTotal() const {
+    float def = 0;
+    for (auto const& [key, val] : armadurasEquipadas) {
+        def += val->getDefesaBonus();
+    }
+    return def;
+}
+
+void Personagem::exibirEquipamentos() const {
+    cout << "\n--- Equipamentos de " << nome << " ---\n";
+    cout << "[Arma]: " << (armaEquipada ? armaEquipada->getNome() : "Nenhuma") << "\n";
+    for (auto const& [slot, armadura] : armadurasEquipadas) {
+        cout << "[" << slot << "]: " << armadura->getNome() << "\n";
+    }
 }
