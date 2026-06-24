@@ -25,6 +25,11 @@ public:
     Goblin();
 };
 
+class GoblinChefao : public Monstro {
+public:
+    GoblinChefao();
+};
+
 class OrcMonstro : public Monstro {
 public:
     OrcMonstro();

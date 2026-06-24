@@ -8,8 +8,8 @@ using namespace std;
 
 class Persistencia {
 public:
-    static bool salvarJogo(Personagem* personagem, const string& arquivo);
-    static Personagem* carregarJogo(const string& arquivo);
+    static bool salvarJogo(Personagem* personagem, const string& arquivo, int progressoBatalha = 0);
+    static Personagem* carregarJogo(const string& arquivo, int& progressoBatalha);
 };
 
 #endif // PERSISTENCIA_HPP

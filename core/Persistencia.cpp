@@ -10,7 +10,7 @@
 #include "../include/ConstrutorEnergia.hpp"
 #include "../include/Clerigo.hpp"
 #include "../include/Raca.hpp"
-bool Persistencia::salvarJogo(Personagem* personagem, const string& arquivo) {
+bool Persistencia::salvarJogo(Personagem* personagem, const string& arquivo, int progressoBatalha) {
     ofstream out(arquivo);
     if (!out.is_open()) {
         cerr << "Erro ao abrir arquivo para salvar!\n";
@@ -28,13 +28,14 @@ bool Persistencia::salvarJogo(Personagem* personagem, const string& arquivo) {
     out << "XP:" << personagem->getExperiencia() << "\n";
     out << "VidaMax:" << personagem->getMaxVida() << "\n";
     out << "VidaAtual:" << personagem->getVida() << "\n";
+    out << "ProgressoBatalha:" << progressoBatalha << "\n";
 
     out.close();
     cout << "Jogo salvo com sucesso em " << arquivo << "!\n";
     return true;
 }
 
-Personagem* Persistencia::carregarJogo(const string& arquivo) {
+Personagem* Persistencia::carregarJogo(const string& arquivo, int& progressoBatalha) {
     ifstream in(arquivo);
     if (!in.is_open()) {
         cerr << "Erro ao abrir arquivo para carregar!\n";
@@ -45,6 +46,7 @@ Personagem* Persistencia::carregarJogo(const string& arquivo) {
     string nome, classe, racaStr;
     int nivel = 1;
     float xp = 0.0f, vidaMax = 100.0f, vidaAtual = 100.0f;
+    int prog = 0;
 
     while (getline(in, linha)) {
         size_t pos = linha.find(':');
@@ -59,9 +61,12 @@ Personagem* Persistencia::carregarJogo(const string& arquivo) {
             else if (chave == "XP") xp = stof(valor);
             else if (chave == "VidaMax") vidaMax = stof(valor);
             else if (chave == "VidaAtual") vidaAtual = stof(valor);
+            else if (chave == "ProgressoBatalha") prog = stoi(valor);
         }
     }
     in.close();
+
+    progressoBatalha = prog;
 
     if (nome.empty() || classe.empty()) return nullptr;
 

@@ -20,6 +20,8 @@ float Monstro::realizarAtaque() const {
 
 Goblin::Goblin() : Monstro("Goblin", 1, 30.0f, 5.0f, 2.0f) {}
 
+GoblinChefao::GoblinChefao() : Monstro("Goblin Chefao", 5, 100.0f, 20.0f, 5.0f) {}
+
 // Renomeado para não conflitar com a Raca Orc
 OrcMonstro::OrcMonstro() : Monstro("Orc Furioso", 3, 80.0f, 15.0f, 3.0f) {}
 

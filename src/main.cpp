@@ -150,16 +150,20 @@ void menuInventario(Personagem* heroi) {
     }
 }
 
-void menuBatalha(Personagem* heroi) {
+void menuBatalha(Personagem* heroi, int& progressoBatalha) {
     limparTela();
     cout << "=======================================\n";
     cout << "           ARENA DE BATALHA            \n";
     cout << "=======================================\n";
     
-    // Escolhe monstro aleatório
-    int tipoMonstro = rand() % 5;
+    if (progressoBatalha >= 5) {
+        cout << "Parabéns! Você já derrotou todos os monstros na Arena e salvou o reino!\n";
+        pausar();
+        return;
+    }
+
     Monstro* monstro = nullptr;
-    switch(tipoMonstro) {
+    switch(progressoBatalha) {
         case 0: monstro = new Goblin(); break;
         case 1: monstro = new OrcMonstro(); break;
         case 2: monstro = new LoboMau(); break;
@@ -167,7 +171,7 @@ void menuBatalha(Personagem* heroi) {
         case 4: monstro = new PeppaPig(); break;
     }
 
-    cout << "Você encontrou um " << monstro->getNome() << " Nv." << monstro->getNivel() << "!\n";
+    cout << "Você encontrou o " << monstro->getNome() << " Nv." << monstro->getNivel() << " (Desafio " << progressoBatalha + 1 << "/5)!\n";
     
     // Demonstração dos operadores == e < (como exigido nas regras de POO)
     cout << "\n--- Comparação Rápida (Operadores) ---\n";
@@ -182,6 +186,7 @@ void menuBatalha(Personagem* heroi) {
 
     if (venceu) {
         cout << "\nVitória na Arena! O drop aleatório já foi processado.\n";
+        progressoBatalha++; // Avança a fase
     } else {
         cout << "\nVocê foi derrotado!\n";
     }
@@ -194,26 +199,43 @@ int main() {
     srand(time(0));
 
     Personagem* meuHeroi = nullptr;
+    int progressoBatalha = 0;
 
     limparTela();
     cout << "=======================================\n";
     cout << "       BEM-VINDO AO RPG MANAGER        \n";
     cout << "=======================================\n\n";
 
-    ifstream in("savegame.txt");
-    if (in.is_open()) {
-        in.close();
-        int op;
-        cout << "Um jogo salvo foi encontrado. Deseja carregar? (1 para Sim, 0 para Novo Jogo): ";
+    int op = 0;
+    while (!meuHeroi) {
+        cout << "[1] Novo Jogador\n";
+        cout << "[2] Carregar Jogador\n";
+        cout << "Escolha uma opção: ";
         cin >> op;
         limparBuffer();
-        if (op == 1) {
-            meuHeroi = Persistencia::carregarJogo("savegame.txt");
-        }
-    }
 
-    if (!meuHeroi) {
-        meuHeroi = criarPersonagem();
+        if (op == 1) {
+            meuHeroi = criarPersonagem();
+        } else if (op == 2) {
+            ifstream in("savegame.txt");
+            if (in.is_open()) {
+                in.close();
+                meuHeroi = Persistencia::carregarJogo("savegame.txt", progressoBatalha);
+                if (!meuHeroi) {
+                    cout << "Erro ao carregar o jogo salvo.\n";
+                    pausar();
+                    limparTela();
+                }
+            } else {
+                cout << "Nenhum jogo salvo encontrado! Crie um novo personagem.\n";
+                pausar();
+                limparTela();
+            }
+        } else {
+            cout << "Opção inválida!\n";
+            pausar();
+            limparTela();
+        }
     }
 
     bool executando = true;
@@ -224,6 +246,7 @@ int main() {
         cout << "             MENU PRINCIPAL            \n";
         cout << "=======================================\n";
         cout << " Herói: " << *meuHeroi << "\n"; // Uso do operator<< exigido
+        cout << " Arena: Desafio " << (progressoBatalha >= 5 ? 5 : progressoBatalha + 1) << "/5\n";
         cout << "=======================================\n";
         cout << "[1] Ficha do Herói (Status)\n";
         cout << "[2] Gerenciar Inventário e Equipamentos\n";
@@ -250,10 +273,10 @@ int main() {
                 menuInventario(meuHeroi);
                 break;
             case 3:
-                menuBatalha(meuHeroi);
+                menuBatalha(meuHeroi, progressoBatalha);
                 break;
             case 4:
-                Persistencia::salvarJogo(meuHeroi, "savegame.txt");
+                Persistencia::salvarJogo(meuHeroi, "savegame.txt", progressoBatalha);
                 cout << "Jogo salvo com sucesso!\n";
                 pausar();
                 break;
