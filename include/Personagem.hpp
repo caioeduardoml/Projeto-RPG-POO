@@ -36,6 +36,8 @@ public:
     Raca* getRaca() const;
     float getExperiencia() const;
     Inventario& getInventario();
+    Arma* getArmaEquipada() const { return armaEquipada; }
+    const std::map<std::string, Armadura*>& getArmadurasEquipadas() const { return armadurasEquipadas; }
 
     void adicionarHabilidade(Habilidade* habilidade);
     void listarHabilidades() const;

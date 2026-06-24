@@ -23,6 +23,8 @@ public:
     int getNivel() const;
     float getVida() const;
     float getMaxVida() const;
+    float getEnergia() const;
+    float getMaxEnergia() const;
 
     virtual void receberDano(float dano) = 0;
     virtual void recuperarVida(float quantidade);

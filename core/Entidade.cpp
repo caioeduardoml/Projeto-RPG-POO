@@ -19,6 +19,14 @@ float Entidade::getMaxVida() const {
     return maxVida;
 }
 
+float Entidade::getEnergia() const {
+    return energia;
+}
+
+float Entidade::getMaxEnergia() const {
+    return maxEnergia;
+}
+
 void Entidade::recuperarVida(float quantidade) {
     vida += quantidade;
     if (vida > maxVida) {

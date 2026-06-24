@@ -58,6 +58,7 @@ void Personagem::ganharExperiencia(float exp) {
         nivel++;
         expProximoNivel = 100.0f * nivel;
         subirNivel();
+        recuperarEnergia(maxEnergia);
     }
 }
 

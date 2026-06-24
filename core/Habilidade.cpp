@@ -48,12 +48,21 @@ string HabilidadeDefensiva::getEfeitoStr() const {
 HabilidadeSuporte::HabilidadeSuporte(string p_nome, string p_descricao, float p_custoEnergia, float p_curaBase)
     : Habilidade(p_nome, p_descricao, p_custoEnergia), curaBase(p_curaBase) {}
 
-void HabilidadeSuporte::usar(Entidade* usuario, Entidade* alvo) {
-    cout << usuario->getNome() << " usa " << nome << " em " << alvo->getNome() << "!\n";
-    alvo->recuperarVida(curaBase);
-    cout << alvo->getNome() << " recuperou " << curaBase << " pontos de vida.\n";
+void HabilidadeSuporte::usar(Entidade* usuario, Entidade* /*alvo*/) {
+    Entidade* beneficiado = usuario;
+    cout << usuario->getNome() << " usa " << nome << "!\n";
+    if (nome == "Clareza Mental" || nome == "Bateria Infinita" || descricao.find("energia") != string::npos || descricao.find("Energia") != string::npos) {
+        beneficiado->recuperarEnergia(curaBase);
+        cout << beneficiado->getNome() << " recuperou " << curaBase << " pontos de energia.\n";
+    } else {
+        beneficiado->recuperarVida(curaBase);
+        cout << beneficiado->getNome() << " recuperou " << curaBase << " pontos de vida.\n";
+    }
 }
 
 string HabilidadeSuporte::getEfeitoStr() const {
+    if (nome == "Clareza Mental" || nome == "Bateria Infinita" || descricao.find("energia") != string::npos || descricao.find("Energia") != string::npos) {
+        return "(Energia: " + std::to_string(static_cast<int>(curaBase)) + ")";
+    }
     return "(Cura: " + std::to_string(static_cast<int>(curaBase)) + ")";
 }
