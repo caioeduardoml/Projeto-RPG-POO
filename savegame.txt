@@ -1,0 +1,7 @@
+Nome:Edu Gomes
+Classe:Construtor de Energia
+Raca:Anão
+Nivel:5
+XP:430
+VidaMax:370
+VidaAtual:370

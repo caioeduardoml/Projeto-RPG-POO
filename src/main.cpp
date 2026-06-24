@@ -3,6 +3,7 @@
 #include <fstream>
 #include <ctime>
 #include <cstdlib>
+#include <limits>
 
 #include "../include/Personagem.hpp"
 #include "../include/Guerreiro.hpp"
@@ -19,10 +20,32 @@
 
 using namespace std;
 
+// Funções auxiliares
+void limparTela() {
+    std::system("clear");
+}
+
+void limparBuffer() {
+    if (cin.fail()) {
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    }
+}
+
+void pausar() {
+    cout << "\nPressione ENTER para continuar...";
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    cin.get();
+}
+
 Personagem* criarPersonagem() {
+    limparTela();
     int escolhaClasse, escolhaRaca;
     string nome;
 
+    cout << "=======================================\n";
+    cout << "           CRIAÇÃO DE HERÓI            \n";
+    cout << "=======================================\n";
     cout << "Digite o nome do seu herói: ";
     cin >> ws; // clear whitespace
     getline(cin, nome);
@@ -31,6 +54,7 @@ Personagem* criarPersonagem() {
     cout << "1. Humano\n2. Elfo\n3. Anão\n4. Orc\n5. Dragão\n";
     cout << "Opção: ";
     cin >> escolhaRaca;
+    limparBuffer();
 
     Raca* raca = nullptr;
     switch (escolhaRaca) {
@@ -46,6 +70,7 @@ Personagem* criarPersonagem() {
     cout << "1. Guerreiro\n2. Mago\n3. Arqueiro\n4. Druida\n5. Ladrão\n6. Construtor de Energia\n7. Clérigo\n";
     cout << "Opção: ";
     cin >> escolhaClasse;
+    limparBuffer();
 
     Personagem* p = nullptr;
     switch (escolhaClasse) {
@@ -58,17 +83,122 @@ Personagem* criarPersonagem() {
         case 7: p = new Clerigo(nome, raca, 1); break;
         default: p = new Guerreiro(nome, raca, 1); break;
     }
+    
+    // Itens iniciais testando a sobrecarga de operador
+    *p + new Arma("Espada Inicial", "Arma básica", 2.0f, 10.0f);
+    *p + new Pocao("Poção de Cura", "Restaura 50 de vida", 0.5f, 50.0f);
+    *p + new PocaoEnergia("Poção de Energia", "Restaura 30 de energia", 0.5f, 30.0f);
+    
     return p;
+}
+
+void menuInventario(Personagem* heroi) {
+    bool noInventario = true;
+    while (noInventario) {
+        limparTela();
+        cout << "=======================================\n";
+        cout << "           GERENCIAR INVENTÁRIO        \n";
+        cout << "=======================================\n";
+        cout << "Capacidade: " << heroi->getInventario().getPesoAtual() << " / " << heroi->getInventario().getCapacidade() << " kg\n";
+        cout << "---------------------------------------\n";
+        heroi->getInventario().listarItens();
+        cout << "---------------------------------------\n";
+        
+        cout << "Escolha o índice do item para interagir (ou 0 para voltar, -1 para ver equipamentos): ";
+        int escolha;
+        cin >> escolha;
+        limparBuffer();
+        
+        if (escolha == 0) {
+            noInventario = false;
+        } else if (escolha == -1) {
+            limparTela();
+            heroi->exibirEquipamentos();
+            string slotEscolhido;
+            cout << "\nDigite o nome do slot para desequipar (Ex: Arma, Capacete) ou 0 para cancelar: ";
+            cin >> slotEscolhido;
+            limparBuffer();
+            if (slotEscolhido != "0") {
+                if (slotEscolhido == "Arma" || slotEscolhido == "arma") {
+                    heroi->desequiparArma();
+                } else {
+                    heroi->desequiparArmadura(slotEscolhido);
+                }
+                pausar();
+            }
+        } else if (escolha > 0 && escolha <= heroi->getInventario().getQuantidadeItens()) {
+            Item* item = heroi->getInventario().getItem(escolha - 1);
+            if (item) {
+                if (item->getTipo() == TipoItem::Arma) {
+                    heroi->equiparArma(dynamic_cast<Arma*>(item));
+                } else if (item->getTipo() == TipoItem::Armadura) {
+                    heroi->equiparArmadura(dynamic_cast<Armadura*>(item));
+                } else if (item->getTipo() == TipoItem::Bomba) {
+                    cout << "Você não pode usar uma bomba fora de batalha!\n";
+                } else {
+                    // Consumível (Poções, Especial)
+                    item->usar(heroi, nullptr);
+                    heroi->getInventario().removerItem(item);
+                    delete item; // Consumido
+                }
+                pausar();
+            }
+        } else {
+            cout << "Opção inválida!\n";
+            pausar();
+        }
+    }
+}
+
+void menuBatalha(Personagem* heroi) {
+    limparTela();
+    cout << "=======================================\n";
+    cout << "           ARENA DE BATALHA            \n";
+    cout << "=======================================\n";
+    
+    // Escolhe monstro aleatório
+    int tipoMonstro = rand() % 5;
+    Monstro* monstro = nullptr;
+    switch(tipoMonstro) {
+        case 0: monstro = new Goblin(); break;
+        case 1: monstro = new OrcMonstro(); break;
+        case 2: monstro = new LoboMau(); break;
+        case 3: monstro = new GiganteMalvado(); break;
+        case 4: monstro = new PeppaPig(); break;
+    }
+
+    cout << "Você encontrou um " << monstro->getNome() << " Nv." << monstro->getNivel() << "!\n";
+    
+    // Demonstração dos operadores == e < (como exigido nas regras de POO)
+    cout << "\n--- Comparação Rápida (Operadores) ---\n";
+    cout << "Heroi (" << heroi->getNome() << ") == Monstro (" << monstro->getNome() << ") ? " << (*heroi == *monstro ? "Sim" : "Não") << "\n";
+    cout << "Nível do Herói < Nível do Monstro ? " << (*heroi < *monstro ? "Sim" : "Não") << "\n";
+    cout << "--------------------------------------\n";
+    pausar();
+    limparTela();
+
+    Batalha batalha(heroi, monstro);
+    bool venceu = batalha.iniciar();
+
+    if (venceu) {
+        cout << "\nVitória na Arena! O drop aleatório já foi processado.\n";
+    } else {
+        cout << "\nVocê foi derrotado!\n";
+    }
+
+    delete monstro;
+    pausar();
 }
 
 int main() {
     srand(time(0));
 
-    cout << "=======================================\n";
-    cout << "       BEM-VINDO À ARENA RPG!        \n";
-    cout << "=======================================\n\n";
-
     Personagem* meuHeroi = nullptr;
+
+    limparTela();
+    cout << "=======================================\n";
+    cout << "       BEM-VINDO AO RPG MANAGER        \n";
+    cout << "=======================================\n\n";
 
     ifstream in("savegame.txt");
     if (in.is_open()) {
@@ -76,6 +206,7 @@ int main() {
         int op;
         cout << "Um jogo salvo foi encontrado. Deseja carregar? (1 para Sim, 0 para Novo Jogo): ";
         cin >> op;
+        limparBuffer();
         if (op == 1) {
             meuHeroi = Persistencia::carregarJogo("savegame.txt");
         }
@@ -85,65 +216,71 @@ int main() {
         meuHeroi = criarPersonagem();
     }
 
-    // Usando sobrecarga do operador + para adicionar itens ao inventário
-    *meuHeroi + new Arma("Espada Longa", "Uma espada de aço afiada", 3.0f, 15.0f);
-    *meuHeroi + new Pocao("Poção de Cura", "Restaura 50 de vida", 0.5f, 50.0f);
-    *meuHeroi + new PocaoEnergia("Poção de Energia", "Restaura 30 de energia", 0.5f, 30.0f);
-    *meuHeroi + new BombaCaseira("Bomba Caseira", "Causa 40 de dano ao inimigo", 1.0f, 40.0f);
-    *meuHeroi + new ItemEspecial("Cristal Místico", "Restaura 40 de energia (Especial)", 0.2f, 40.0f);
+    bool executando = true;
 
-    // Usando sobrecarga do operador + para ganhar XP
-    *meuHeroi + 15.0f;
-
-    cout << "\nSeu Herói foi criado!\n";
-    cout << *meuHeroi << "\n"; // Testa a sobrecarga do operador <<
-    meuHeroi->getInventario().listarItens();
-    cout << "\n";
-
-    // Demonstrando operadores de comparação == e <
-    Goblin g1;
-    OrcMonstro o1;
-    cout << "--- Comparando Inimigos com operadores == e < ---\n";
-    cout << "g1 (" << g1.getNome() << " Nv." << g1.getNivel() << ") == o1 (" << o1.getNome() << " Nv." << o1.getNivel() << ")? " 
-         << (g1 == o1 ? "Sim" : "Não") << "\n";
-    cout << "g1 (" << g1.getNome() << " Nv." << g1.getNivel() << ") < o1 (" << o1.getNome() << " Nv." << o1.getNivel() << ")? " 
-         << (g1 < o1 ? "Sim" : "Não") << "\n\n";
-
-    // Criando monstros
-    vector<Monstro*> monstros;
-    monstros.push_back(new Goblin());
-    monstros.push_back(new OrcMonstro());
-    monstros.push_back(new GiganteMalvado());
-
-    bool venceuTudo = true;
-
-    for (size_t i = 0; i < monstros.size(); ++i) {
-        Batalha batalha(meuHeroi, monstros[i]);
-        if (!batalha.iniciar()) {
-            venceuTudo = false;
-            break;
-        }
-
+    while (executando && meuHeroi->isVivo()) {
+        limparTela();
+        cout << "=======================================\n";
+        cout << "             MENU PRINCIPAL            \n";
+        cout << "=======================================\n";
+        cout << " Herói: " << *meuHeroi << "\n"; // Uso do operator<< exigido
+        cout << "=======================================\n";
+        cout << "[1] Ficha do Herói (Status)\n";
+        cout << "[2] Gerenciar Inventário e Equipamentos\n";
+        cout << "[3] Arena de Batalha\n";
+        cout << "[4] Salvar Jogo\n";
+        cout << "[0] Sair\n";
+        cout << "=======================================\n";
+        cout << "Escolha uma opção: ";
+        
         int opcao;
-        cout << "Deseja salvar o jogo? (1 para Sim, 0 para Não): ";
         cin >> opcao;
-        if (opcao == 1) {
-            Persistencia::salvarJogo(meuHeroi, "savegame.txt");
+        limparBuffer();
+
+        switch (opcao) {
+            case 1:
+                limparTela();
+                cout << "=======================================\n";
+                cout << "             FICHA DO HERÓI            \n";
+                cout << "=======================================\n";
+                meuHeroi->exibirStatus(); // Polimorfismo
+                pausar();
+                break;
+            case 2:
+                menuInventario(meuHeroi);
+                break;
+            case 3:
+                menuBatalha(meuHeroi);
+                break;
+            case 4:
+                Persistencia::salvarJogo(meuHeroi, "savegame.txt");
+                cout << "Jogo salvo com sucesso!\n";
+                pausar();
+                break;
+            case 0:
+                executando = false;
+                break;
+            default:
+                cout << "Opção inválida!\n";
+                pausar();
+                break;
         }
     }
 
-    if (venceuTudo) {
+    limparTela();
+    if (!meuHeroi->isVivo()) {
         cout << "=======================================\n";
-        cout << " PARABÉNS! VOCÊ DERROTOU TODOS OS MONSTROS!\n";
-        cout << " O REINO ESTÁ SALVO!\n";
+        cout << "              GAME OVER                \n";
+        cout << "=======================================\n";
+        cout << "Seu herói sucumbiu em batalha.\n";
+    } else {
+        cout << "=======================================\n";
+        cout << "        OBRIGADO POR JOGAR!            \n";
         cout << "=======================================\n";
     }
 
-    // Limpeza
+    // Liberação de memória dos ponteiros brutos (Exigido no ponto 1. [0] Sair)
     delete meuHeroi;
-    for (Monstro* m : monstros) {
-        delete m;
-    }
 
     return 0;
 }
