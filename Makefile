@@ -4,11 +4,12 @@ LDFLAGS =
 TEST_LDFLAGS = -lgtest -lgtest_main -pthread
 
 SRC_DIR = src
+CORE_DIR = core
 OBJ_DIR = obj
 TEST_DIR = tests
 
-# Ignorando main.cpp para não causar conflito de multiplas mains no test
-SRCS = $(filter-out $(SRC_DIR)/main.cpp, $(wildcard $(SRC_DIR)/*.cpp) $(wildcard $(SRC_DIR)/Herois/*.cpp) $(wildcard $(SRC_DIR)/Monstros/*.cpp))
+# Todos os fontes do jogo (exceto main.cpp que está na pasta src)
+SRCS = $(wildcard $(CORE_DIR)/*.cpp) $(wildcard $(CORE_DIR)/Herois/*.cpp) $(wildcard $(CORE_DIR)/Monstros/*.cpp)
 OBJS = $(addprefix $(OBJ_DIR)/, $(notdir $(SRCS:.cpp=.o)))
 MAIN_OBJ = $(OBJ_DIR)/main.o
 
@@ -18,7 +19,7 @@ TEST_OBJS = $(addprefix $(OBJ_DIR)/, $(notdir $(TEST_SRCS:.cpp=.o)))
 TARGET = rpg_game
 TEST_TARGET = test_rpg
 
-VPATH = $(SRC_DIR) $(SRC_DIR)/Herois $(SRC_DIR)/Monstros $(TEST_DIR)
+VPATH = $(SRC_DIR) $(CORE_DIR) $(CORE_DIR)/Herois $(CORE_DIR)/Monstros $(TEST_DIR)
 
 .PHONY: all clean test
 
