@@ -1,0 +1,328 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[brazil]{babel}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{geometry}
+
+\geometry{
+    a4paper,
+    left=3cm,
+    right=2cm,
+    top=3cm,
+    bottom=2cm
+}
+
+% Configuração de cores para o código C++
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstset{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{purple},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\small,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2,
+    language=C++
+}
+
+\begin{document}
+
+% --- CAPA ---
+\begin{titlepage}
+    \centering
+    \Large \textbf{Universidade Tecnológica Federal do Paraná} \\
+    \large Campus Apucarana \\
+    \large Engenharia da Computação \\
+    \vspace{4cm}
+    \Huge \textbf{RPG Manager} \\
+    \large Sistema de Gerenciamento e Arena de RPG \\
+    \vspace{1.5cm}
+    \Large \textbf{Especificação Técnica e Documentação do Sistema} \\
+    \vspace{4cm}
+    \large \textbf{Disciplina:} Programação Orientada a Objetos \\
+    \large \textbf{Linguagem do Projeto:} C++17 \\
+    \vfill
+    \large Apucarana, \the\year
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+% --- INTRODUÇÃO ---
+\section{Introdução e Motivação}
+Jogos de RPG (\textit{Role-Playing Game}) representam sistemas de alta complexidade compostos por diversas entidades interagindo sob regras rígidas. A modelagem de personagens, raças, itens, inventários, habilidades e combates por turnos se alinha perfeitamente ao paradigma de Programação Orientada a Objetos (POO). 
+
+Este documento apresenta a especificação técnica e a arquitetura do \textit{RPG Manager}, desenvolvido em C++17. A aplicação é executada via interface de linha de comando (CLI), focando na separação de responsabilidades, uso correto de tipos genéricos da STL, polimorfismo, encapsulamento rígido e na aplicação de padrões de projeto clássicos para resolver problemas comuns de design.
+
+---
+
+% --- ARQUITETURA ---
+\section{Arquitetura do Sistema e Visibilidade}
+O sistema foi estruturado de forma modular em C++, separando as definições de classe em arquivos de cabeçalho (\texttt{.hpp}) no diretório \texttt{include} e as implementações (\texttt{.cpp}) no diretório \texttt{src} (com subdiretórios \texttt{Herois} e \texttt{Monstros}). Os modificadores de visibilidade (\texttt{private}, \texttt{protected} e \texttt{public}) foram aplicados para garantir encapsulamento seguro.
+
+\subsection{Módulo de Entidades e Personagens}
+
+\subsubsection{Classe Abstrata: Entidade}
+Base conceitual para todas as entidades vivas e interativas do jogo (Heróis e Monstros).
+\begin{itemize}
+    \item \textbf{Atributos Protegidos (\texttt{protected}):}
+    \begin{itemize}
+        \item \texttt{std::string nome;} --- Nome identificador da entidade.
+        \item \texttt{int nivel;} --- Nível atual de poder da entidade.
+        \item \texttt{float vida;} --- Pontos de vida atuais.
+        \item \texttt{float maxVida;} --- Pontos de vida máximos.
+        \item \texttt{float energia;} --- Recurso energético para uso de habilidades.
+        \item \texttt{float maxEnergia;} --- Limite máximo de energia (padrão: 50.0).
+    \end{itemize}
+    \item \textbf{Métodos Públicos (\texttt{public}):}
+    \begin{itemize}
+        \item Construtor parametrizado padrão e Destrutor virtual padrão (\texttt{virtual \textasciitilde{}Entidade() = default}).
+        \item \texttt{std::string getNome() const;} / \texttt{int getNivel() const;} / \texttt{float getVida() const;} / \texttt{float getMaxVida() const;} --- Getters básicos de leitura.
+        \item \texttt{virtual void receberDano(float dano) = 0;} --- Método virtual puro que implementa o cálculo e aplicação de dano à entidade.
+        \item \texttt{virtual void recuperarVida(float quantidade);} --- Restaura a vida respeitando o limite máximo.
+        \item \texttt{virtual void recuperarEnergia(float quantidade);} --- Restaura a energia respeitando o limite máximo.
+        \item \texttt{virtual bool gastarEnergia(float quantidade);} --- Deduz energia se houver saldo suficiente; retorna sucesso.
+        \item \texttt{bool isVivo() const;} --- Verifica se a vida é maior que zero.
+        \item \texttt{virtual void exibirStatus() const;} --- Imprime em console a ficha geral da entidade.
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Classe: Personagem (Herda publicamente de Entidade)}
+Representa a ficha do jogador, contendo atributos de RPG, raça, inventário e habilidades adquiridas.
+\begin{itemize}
+    \item \textbf{Atributos Protegidos (\texttt{protected}):}
+    \begin{itemize}
+        \item \texttt{std::string classeRPG;} --- Classe do herói (ex: Guerreiro, Mago).
+        \item \texttt{Raca* raca;} --- Associação polimórfica com a raça (ponteiro bruto).
+        \item \texttt{float experiencia;} --- Experiência acumulada no nível atual.
+        \item \texttt{float expProximoNivel;} --- Meta de experiência para o próximo nível (calculada como $100.0 \times \text{nivel}$).
+        \item \texttt{Inventario inventario;} --- Composição direta de um inventário dedicado.
+        \item \texttt{std::vector<Habilidade*> habilidades;} --- Vetor polimórfico de habilidades aprendidas.
+        \item \texttt{float forca;} --- Atributo físico multiplicador de dano.
+        \item \texttt{float inteligencia;} --- Atributo mental multiplicador de efeitos mágicos.
+        \item \texttt{Arma* armaEquipada;} --- Ponteiro para arma atualmente equipada (ou \texttt{nullptr}).
+        \item \texttt{std::map<std::string, Armadura*> armadurasEquipadas;} --- Dicionário mapeando partes de slots (ex: "Peitoral") para armaduras equipadas.
+    \end{itemize}
+    \item \textbf{Métodos Públicos (\texttt{public}):}
+    \begin{itemize}
+        \item Construtor especializado e Destrutor gerenciando a limpeza das habilidades e equipamentos alocados dinamicamente para evitar vazamentos de memória.
+        \item Getters gerais e \texttt{Inventario\& getInventario();} para acesso ao inventário.
+        \item \texttt{void adicionarHabilidade(Habilidade* habilidade);} --- Adiciona habilidade ao vetor.
+        \item \texttt{void listarHabilidades() const;} --- Imprime a lista de habilidades conhecidas.
+        \item \texttt{Habilidade* escolherHabilidade(int indice) const;} --- Retorna um ponteiro da habilidade pelo índice.
+        \item \texttt{void ganharExperiencia(float exp);} --- Incrementa XP e aciona \texttt{subirNivel()} recursivamente caso o limiar seja atingido.
+        \item \texttt{virtual void subirNivel() = 0;} --- Método virtual puro sobrescrito pelas classes concretas para aumentar atributos e liberar habilidades específicas.
+        \item \texttt{void restaurarEstado(int p\_nivel\_salvo, float p\_xp, float p\_vidaMax, float p\_vidaAtual);} --- Carrega status salvos.
+        \item \texttt{void equiparArma(Arma* arma);} / \texttt{void desequiparArma();} --- Gerencia slot de arma.
+        \item \texttt{void equiparArmadura(Armadura* armadura);} / \texttt{void desequiparArmadura(const std::string\& slot);} --- Gerencia slots de armadura.
+        \item \texttt{float getDanoTotal() const;} --- Retorna a força somada ao dano de bônus da arma equipada.
+        \item \texttt{float getDefesaTotal() const;} --- Retorna a soma de toda defesa fornecida pelas armaduras equipadas.
+        \item \texttt{void exibirEquipamentos() const;} --- Exibe itens atualmente equipados em console.
+        \item \texttt{void receberDano(float dano) override;} --- Reduz o dano recebido pela defesa do personagem antes de aplicá-lo à vida.
+        \item \texttt{void exibirStatus() const override;} --- Sobrescreve e estende a visualização de status padrão.
+        \item \texttt{friend std::ostream\& operator<<(std::ostream\& os, const Personagem\& p);} --- Sobrecarga de operador para impressão customizada do herói.
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Classes Concretas (Subclasses de Personagem)}
+Cada subclasse inicializa atributos bases diferentes e possui sua própria progressão por meio da sobrescrita de \texttt{subirNivel()}:
+\begin{itemize}
+    \item \textbf{Guerreiro}: Foco em Vida (base 150) e Força (base 20). Aprende habilidades físicas como \textit{Golpe Forte}, \textit{Corte Duplo} e \textit{Golpe Devastador}.
+    \item \textbf{Mago}: Foco em Inteligência (base 25) e menor Vida (base 80). Aprende magias elementais como \textit{Bola de Fogo}, \textit{Raio Congelante} e \textit{Meteoro}.
+    \item \textbf{Arqueiro}: Foco equilibrado em Força (base 15) e Vida (base 110). Desenvolve ataques à distância como \textit{Tiro Certeiro} e \textit{Flecha do Dragão}.
+    \item \textbf{Druida}: Híbrido focado em Inteligência (base 15) e suporte. Aprende magias de suporte e cura como \textit{Cura da Terra} e \textit{Pele de Árvore}.
+    \item \textbf{Ladrão}: Foco em ataque furtivo rápido (Força base 12, Inteligência base 12). Destaca-se com \textit{Ataque Furtivo} e \textit{Roubo de Vida}.
+    \item \textbf{Construtor de Energia}: Classe única e especializada focada em energia canalizada (Vida base 150, Força base 20, Inteligência base 20). Suas habilidades manipulam energia pura (\textit{Kamehameha}, \textit{Genki Dama}).
+    \item \textbf{Clérigo}: Híbrido focado em suporte sagrado e cura (Vida base 120, Força base 10, Inteligência base 18). Consegue usar feitiços de cura (\textit{Cura Divina}, \textit{Prece de Cura}) e de dano sagrado (\textit{Luz Sagrada}, \textit{Ira de Deus}).
+\end{itemize}
+
+\subsubsection{Hierarquia de Raças (Classe Raca e Subclasses)}
+A classe \texttt{Raca} é associada ao personagem de forma polimórfica para aplicar modificadores de atributos:
+\begin{itemize}
+    \item \textbf{Classe Base: \texttt{Raca}} --- Armazena \texttt{nomeRaca}, \texttt{bonusVida}, \texttt{bonusForca} e \texttt{bonusInteligencia}.
+    \item \textbf{Subclasses Concretas}:
+    \begin{itemize}
+        \item \texttt{Humano}: Equilibrado ($+10.0$ Vida, $+5.0$ Força, $+5.0$ Intel).
+        \item \texttt{Elfo}: Mágico ($-5.0$ Vida, $+2.0$ Força, $+10.0$ Intel).
+        \item \texttt{Anão}: Defensivo e forte ($+20.0$ Vida, $+10.0$ Força, $-5.0$ Intel).
+        \item \texttt{Orc}: Força bruta ($+15.0$ Vida, $+15.0$ Força, $-10.0$ Intel).
+        \item \texttt{Dragão}: Lendário ($+30.0$ Vida, $+30.0$ Força, $-10.0$ Intel).
+    \end{itemize}
+\end{itemize}
+
+---
+
+\subsection{Módulo de Inventário e Itens}
+
+\subsubsection{Classe Abstrata: Item}
+Molde para todos os itens coletáveis e utilizáveis no jogo.
+\begin{itemize}
+    \item \textbf{Atributos Protegidos (\texttt{protected}):}
+    \begin{itemize}
+        \item \texttt{std::string nome;} --- Identificador do item.
+        \item \texttt{std::string descricao;} --- Texto explicativo do efeito.
+        \item \texttt{float peso;} --- Carga do item no inventário (em kg).
+        \item \texttt{TipoItem tipo;} --- Enumeração (\texttt{Arma, Armadura, Pocao, PocaoEnergia, Bomba}).
+    \end{itemize}
+    \item \textbf{Métodos Públicos (\texttt{public}):}
+    \begin{itemize}
+        \item Construtor padrão e Destrutor virtual padrão.
+        \item \texttt{virtual void usar(Entidade* usuario, Entidade* alvo) = 0;} --- Função virtual pura de ativação do item.
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Subclasses de Item}
+\begin{itemize}
+    \item \textbf{Arma}: Contém atributo \texttt{danoBonus}. O uso equipa a arma no herói, recalculando seu poder ofensivo.
+    \item \textbf{Armadura}: Contém atributo \texttt{defesaBonus}. O uso equipa o protetor em um slot correspondente, alterando a mitigação de dano global do personagem.
+    \item \textbf{Pocao}: Contém \texttt{cura}. Ao ser usada, restaura a vida do usuário. É consumida do inventário.
+    \item \textbf{PocaoEnergia}: Contém \texttt{energiaRestaurada}. Ao usar, restaura energia da entidade. É consumida do inventário.
+    \item \textbf{BombaCaseira}: Contém \texttt{dano}. Causa dano físico direto ao alvo especificado. É consumida após o uso.
+    \item \textbf{ItemEspecial}: Contém o atributo \texttt{bonusStatus}. Seu uso consome o item e concede restauração de energia para o usuário.
+\end{itemize}
+
+\subsubsection{Classe: Inventario}
+Gerencia as coleções de itens de cada personagem.
+\begin{itemize}
+    \item \textbf{Atributos Privados (\texttt{private}):}
+    \begin{itemize}
+        \item \texttt{std::vector<Item*> itens;} --- Vetor contendo os ponteiros dos itens guardados.
+        \item \texttt{float capacidadePeso;} --- Capacidade de carga máxima.
+        \item \texttt{float pesoAtual;} --- Peso total somado de todos os itens.
+    \end{itemize}
+    \item \textbf{Métodos Públicos (\texttt{public}):}
+    \begin{itemize}
+        \item \texttt{bool adicionarItem(Item* item);} --- Insere item se o peso atual somado ao peso do item não ultrapassar a capacidade máxima.
+        \item \texttt{bool removerItem(Item* item);} --- Remove item do vetor e atualiza o peso atual.
+        \item \texttt{void listarItens() const;} --- Imprime a listagem de todos os itens guardados no inventário.
+        \item Getters gerais e auxiliares como \texttt{getItem(int indice)} e \texttt{getItensPorTipo(TipoItem tipo)}.
+    \end{itemize}
+\end{itemize}
+
+---
+
+\subsection{Módulo de Habilidades}
+
+\subsubsection{Classe Abstrata: Habilidade}
+Abstração polimórfica para magias e ataques especiais.
+\begin{itemize}
+    \item \textbf{Atributos Protegidos (\texttt{protected}):}
+    \begin{itemize}
+        \item \texttt{std::string nome;} --- Nome da habilidade.
+        \item \texttt{std::string descricao;} --- Descrição textual.
+        \item \texttt{float custoEnergia;} --- Custo para uso.
+    \end{itemize}
+    \item \textbf{Métodos Públicos (\texttt{public}):}
+    \begin{itemize}
+        \item \texttt{virtual void usar(Entidade* usuario, Entidade* alvo) = 0;} --- Função virtual pura de execução da habilidade.
+        \item \texttt{virtual std::string getEfeitoStr() const;} --- Retorna string formatada do efeito numérico básico.
+    \end{itemize}
+\end{itemize}
+
+\subsubsection{Subclasses de Habilidade}
+\begin{itemize}
+    \item \textbf{HabilidadeOfensiva}: Contém \texttt{danoBase}. Executa ataque somando o dano total do usuário ao alvo.
+    \item \textbf{HabilidadeDefensiva}: Contém \texttt{aumentoDefesa}. Executa bônus de proteção no combate.
+    \item \textbf{HabilidadeSuporte}: Contém \texttt{curaBase}. Restaura a vida de um aliado ou do próprio usuário.
+\end{itemize}
+
+---
+
+\subsection{Módulo de Combate e Monstros}
+
+\subsubsection{Classe: Batalha}
+Controlador encarregado do loop de combate por turnos.
+\begin{itemize}
+    \item \textbf{Estrutura do Combate}:
+    No turno do jogador, ele pode escolher equipar/desequipar itens, utilizar um item consumível do inventário, realizar um ataque básico baseado em \texttt{getDanoTotal()} ou usar uma das habilidades aprendidas (consumindo energia). Em seguida, o monstro realiza seu ataque.
+    \item \textbf{Sistema de Drops}:
+    Após derrotar um monstro, a batalha gera uma recompensa aleatória utilizando a probabilidade (\texttt{gerarDropAleatorio()}) e adiciona o item ao inventário do herói.
+\end{itemize}
+
+\subsubsection{Hierarquia de Monstros (Classe Monstro e Subclasses)}
+Monstros herdam de \texttt{Entidade} e estendem seu comportamento ofensivo com o método \texttt{realizarAtaque()}:
+\begin{itemize}
+    \item \textbf{Subclasses Concretas de Inimigos}:
+    \begin{itemize}
+        \item \texttt{Goblin} --- Rápido e fraco (Vida: 30, Força: 5).
+        \item \texttt{OrcMonstro} --- Resistente e forte (Vida: 80, Força: 15).
+        \item \texttt{LoboMau} --- Equilibrado (Vida: 100, Força: 20).
+        \item \texttt{GiganteMalvado} --- Chefe intimidador (Vida: 300, Força: 50).
+        \item \texttt{PeppaPig} --- Inimigo ultra secreto e extremamente forte (Vida: 1000, Força: 100).
+    \end{itemize}
+\end{itemize}
+
+---
+
+\subsection{Módulo de Persistência}
+A persistência é implementada pela classe utilitária estática \texttt{Persistencia}. Ela lê e escreve os dados cruciais do herói em arquivos de texto plano (\texttt{savegame.txt}) contendo chaves estruturadas (\texttt{Nome}, \texttt{Classe}, \texttt{Raca}, \texttt{Nivel}, \texttt{XP}, \texttt{VidaMax}, \texttt{VidaAtual}). O carregamento analisa o arquivo sequencialmente, recria a combinação correta de Classe e Raça através do mapeamento e reconstrói o nível e atributos exatos do personagem através de \texttt{restaurarEstado()}.
+
+---
+
+% --- REQUISITOS ---
+\section{Requisitos do Sistema}
+
+\subsection{Requisitos Funcionais}
+\begin{enumerate}
+    \item \textbf{Criação de Personagem Customizada}: O jogador escolhe o nome, raça (Humano, Elfo, Anão, Orc, Dragão) e classe (Guerreiro, Mago, Arqueiro, Druida, Ladrão, Construtor de Energia). Os atributos iniciais herdam a soma da base da classe mais os modificadores raciais.
+    \item \textbf{Menu de Ações do Jogo}: Interface CLI interativa em loop permitindo navegar nas atividades do sistema.
+    \item \textbf{Gerenciamento de Inventário}: Adição de itens comprados/dropados e remoção automática de itens consumíveis usados.
+    \item \textbf{Sistema de Equipamentos Ativo}: Permite equipar armas e armaduras com recálculo automático em tempo real de \texttt{getDanoTotal()} e \texttt{getDefesaTotal()}.
+    \item \textbf{Combate Dinâmico por Turnos}: Combate sequencial detalhado onde ações do jogador e do inimigo são computadas e notificadas.
+    \item \textbf{Evolução do Herói (Level Up)}: Ganho de XP em batalhas que aumenta o nível e desbloqueia automaticamente novos feitiços e golpes baseados na classe.
+    \item \textbf{Persistência do Estado}: Capacidade de salvar o progresso atual em arquivo físico e recarregar perfeitamente ao iniciar o programa.
+\end{enumerate}
+
+\subsection{Requisitos Técnicos}
+\begin{itemize}
+    \item \textbf{Uso do Polimorfismo}: Emprego de classes abstratas de interface virtual pura (\texttt{Entidade}, \texttt{Item}, \texttt{Habilidade}) garantindo flexibilidade e extensibilidade do código.
+    \item \textbf{Coleções STL}: Uso intensivo de coleções como \texttt{std::vector} e \texttt{std::map} para estruturar os dados e algoritmos da biblioteca padrão para manipulação.
+    \item \textbf{Gerenciamento Seguro de Memória}: O projeto utiliza alocação dinâmica com controle de deleção explícito no destrutor dos contêineres de personagens e inventários, evitando vazamentos (\textit{memory leaks}).
+    \item \textbf{Sobrecarga de Operadores}: Implementação da sobrecarga do operador \texttt{<<} permitindo a impressão elegante de um personagem diretamente nos fluxos de saída (\texttt{std::cout}), além dos operadores de comparação \texttt{==} (compara nome e nível de duas entidades) e \texttt{<} (compara nível de duas entidades para ordenação), e do operador aritmético de adição \texttt{+} para o herói, permitindo ganhar experiência (ex: \texttt{heroi + 50.0f}) e adicionar itens diretamente ao inventário (ex: \texttt{heroi + item}).
+    \item \textbf{Testes Automatizados}: Suíte de testes automatizados integrada baseada em Google Test (\texttt{gtest}) cobrindo regras de peso de inventário, mitigação de dano de personagem, consistência de monstros, operadores de comparação/soma e a classe clérigo.
+\end{itemize}
+
+---
+
+\section{Métricas de Avaliação (UTFPR)}
+A distribuição das notas segue a matriz oficial de pesos da instituição:
+
+\begin{table}[htbp]
+    \centering
+    \caption{Distribuição de Notas do Projeto}
+    \label{tab:pesos}
+    \vspace{0.3cm}
+    \begin{tabular}{lcc}
+        \toprule
+        \textbf{Critério de Avaliação} & \textbf{Peso (\%)} & \textbf{Pontuação Máxima} \\
+        \midrule
+        Implementação correta dos conceitos de POO & 30\% & 30 pts \\
+        Funcionamento correto do sistema (Requisitos) & 25\% & 25 pts \\
+        Qualidade do código e Boas Práticas & 15\% & 15 pts \\
+        Diagrama de Classes UML & 15\% & 15 pts \\
+        Apresentação oral e Relatório Técnico & 15\% & 15 pts \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\end{document}

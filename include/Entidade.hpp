@@ -31,6 +31,9 @@ public:
     bool isVivo() const;
 
     virtual void exibirStatus() const;
+
+    bool operator==(const Entidade& outra) const;
+    bool operator<(const Entidade& outra) const;
 };
 
 #endif // ENTIDADE_HPP

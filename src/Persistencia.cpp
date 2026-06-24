@@ -8,6 +8,7 @@
 #include "../include/Arqueiro.hpp"
 #include "../include/Ladrao.hpp"
 #include "../include/ConstrutorEnergia.hpp"
+#include "../include/Clerigo.hpp"
 #include "../include/Raca.hpp"
 bool Persistencia::salvarJogo(Personagem* personagem, const string& arquivo) {
     ofstream out(arquivo);
@@ -79,6 +80,7 @@ Personagem* Persistencia::carregarJogo(const string& arquivo) {
     else if (classe == "Druida") p = new Druida(nome, raca, 1);
     else if (classe == "Ladrão") p = new Ladrao(nome, raca, 1);
     else if (classe == "Construtor de Energia") p = new ConstrutorEnergia(nome, raca, 1);
+    else if (classe == "Clérigo") p = new Clerigo(nome, raca, 1);
     else p = new Guerreiro(nome, raca, 1);
 
     p->restaurarEstado(nivel, xp, vidaMax, vidaAtual);

@@ -49,3 +49,12 @@ void Entidade::exibirStatus() const {
     cout << "[" << nome << " Nv." << nivel << "] | Vida: " << vida << "/" << maxVida 
          << " | Energia: " << energia << "/" << maxEnergia << "\n";
 }
+
+bool Entidade::operator==(const Entidade& outra) const {
+    return this->nome == outra.nome && this->nivel == outra.nivel;
+}
+
+bool Entidade::operator<(const Entidade& outra) const {
+    return this->nivel < outra.nivel;
+}
+

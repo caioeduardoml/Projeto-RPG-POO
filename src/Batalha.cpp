@@ -71,7 +71,8 @@ bool Batalha::iniciar() {
                     // Consumíveis (Poções, Bombas) são removidos após o uso
                     if (itemEscolhido->getTipo() == TipoItem::Pocao || 
                         itemEscolhido->getTipo() == TipoItem::PocaoEnergia || 
-                        itemEscolhido->getTipo() == TipoItem::Bomba) {
+                        itemEscolhido->getTipo() == TipoItem::Bomba ||
+                        itemEscolhido->getTipo() == TipoItem::Especial) {
                         heroi->getInventario().removerItem(itemEscolhido);
                         delete itemEscolhido; // Evitar memory leak pois não está mais no inventário
                     }

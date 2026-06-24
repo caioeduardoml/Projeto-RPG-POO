@@ -151,3 +151,16 @@ void Personagem::exibirEquipamentos() const {
         cout << "[" << slot << "]: " << armadura->getNome() << "\n";
     }
 }
+
+Personagem& Personagem::operator+(float exp) {
+    this->ganharExperiencia(exp);
+    return *this;
+}
+
+Personagem& Personagem::operator+(Item* item) {
+    if (item) {
+        this->inventario.adicionarItem(item);
+    }
+    return *this;
+}
+

@@ -10,7 +10,8 @@ enum class TipoItem {
     Armadura,
     Pocao,
     PocaoEnergia,
-    Bomba
+    Bomba,
+    Especial
 };
 
 class Item {
@@ -74,6 +75,15 @@ private:
 public:
     BombaCaseira(string p_nome, string p_descricao, float p_peso, float p_dano);
     float getDano() const;
+    void usar(class Entidade* usuario, class Entidade* alvo) override;
+};
+
+class ItemEspecial : public Item {
+private:
+    float bonusStatus;
+public:
+    ItemEspecial(string p_nome, string p_descricao, float p_peso, float p_bonusStatus);
+    float getBonusStatus() const;
     void usar(class Entidade* usuario, class Entidade* alvo) override;
 };
 

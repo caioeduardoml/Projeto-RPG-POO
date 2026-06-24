@@ -59,6 +59,9 @@ public:
 
     // Sobrecarga de operador << solicitada na especificação
     friend ostream& operator<<(ostream& os, const Personagem& p);
+
+    Personagem& operator+(float exp);
+    Personagem& operator+(Item* item);
 };
 
 #endif // PERSONAGEM_HPP

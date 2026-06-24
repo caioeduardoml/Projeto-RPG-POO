@@ -76,3 +76,16 @@ void BombaCaseira::usar(Entidade* usuario, Entidade* alvo) {
     cout << usuario->getNome() << " arremessou " << nome << " em " << alvo->getNome() << "!\n";
     alvo->receberDano(dano);
 }
+
+// --- Item Especial ---
+ItemEspecial::ItemEspecial(string p_nome, string p_descricao, float p_peso, float p_bonusStatus)
+    : Item(p_nome, p_descricao, p_peso, TipoItem::Especial), bonusStatus(p_bonusStatus) {}
+
+float ItemEspecial::getBonusStatus() const { return bonusStatus; }
+
+void ItemEspecial::usar(Entidade* usuario, Entidade* /*alvo*/) {
+    cout << usuario->getNome() << " ativou o " << nome << "!\n";
+    usuario->recuperarEnergia(bonusStatus);
+    cout << "+ " << bonusStatus << " de Energia restaurada pelo item especial!\n";
+}
+
