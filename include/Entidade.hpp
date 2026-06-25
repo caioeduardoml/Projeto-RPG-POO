@@ -29,7 +29,12 @@ public:
     virtual void receberDano(float dano) = 0;
     virtual void recuperarVida(float quantidade);
     virtual void recuperarEnergia(float quantidade);
-    virtual bool gastarEnergia(float quantidade);
+    /**
+     * @brief Tenta gastar energia da entidade.
+     * @param quantidade A quantidade a gastar.
+     * @throws HabilidadeException Se a entidade não tiver energia suficiente.
+     */
+    virtual void gastarEnergia(float quantidade);
     bool isVivo() const;
 
     virtual void exibirStatus() const;

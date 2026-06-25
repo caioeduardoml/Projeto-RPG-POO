@@ -13,6 +13,7 @@
 #include <QDebug>
 #include <QSplitter>
 #include <fstream>
+#include "../include/Exceptions.hpp"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), heroi(nullptr), progressoBatalha(0), monstroAtual(nullptr), emCombate(false), streamRedirector(nullptr) {
@@ -209,12 +210,14 @@ bool MainWindow::mostrarWelcomeDialog() {
         std::ifstream in("savegame.txt");
         if (in.is_open()) {
             in.close();
-            heroi = Persistencia::carregarJogo("savegame.txt", progressoBatalha);
-            if (heroi) {
-                inicializado = true;
-                welcomeDialog.accept();
-            } else {
-                QMessageBox::warning(&welcomeDialog, "Erro", "Erro ao ler savegame.txt!");
+            try {
+                heroi = Persistencia::carregarJogo("savegame.txt", progressoBatalha);
+                if (heroi) {
+                    inicializado = true;
+                    welcomeDialog.accept();
+                }
+            } catch (const PersistenciaException& e) {
+                QMessageBox::warning(&welcomeDialog, "Erro", e.what());
             }
         } else {
             QMessageBox::warning(&welcomeDialog, "Aviso", "Nenhum jogo salvo encontrado! Crie um Novo Jogador.");
@@ -262,29 +265,37 @@ bool MainWindow::mostrarWelcomeDialog() {
                 default: raca = new Humano(); break;
             }
 
-            int choiceClass = cbClasse->currentIndex();
-            switch (choiceClass) {
-                case 0: heroi = new Guerreiro(nome.toStdString(), raca, 1); break;
-                case 1: heroi = new Mago(nome.toStdString(), raca, 1); break;
-                case 2: heroi = new Arqueiro(nome.toStdString(), raca, 1); break;
-                case 3: heroi = new Druida(nome.toStdString(), raca, 1); break;
-                case 4: heroi = new Ladrao(nome.toStdString(), raca, 1); break;
-                case 5: heroi = new ConstrutorEnergia(nome.toStdString(), raca, 1); break;
-                case 6: heroi = new Clerigo(nome.toStdString(), raca, 1); break;
-                default: heroi = new Guerreiro(nome.toStdString(), raca, 1); break;
+            try {
+                int choiceClass = cbClasse->currentIndex();
+                switch (choiceClass) {
+                    case 0: heroi = new Guerreiro(nome.toStdString(), raca, 1); break;
+                    case 1: heroi = new Mago(nome.toStdString(), raca, 1); break;
+                    case 2: heroi = new Arqueiro(nome.toStdString(), raca, 1); break;
+                    case 3: heroi = new Druida(nome.toStdString(), raca, 1); break;
+                    case 4: heroi = new Ladrao(nome.toStdString(), raca, 1); break;
+                    case 5: heroi = new ConstrutorEnergia(nome.toStdString(), raca, 1); break;
+                    case 6: heroi = new Clerigo(nome.toStdString(), raca, 1); break;
+                    default: heroi = new Guerreiro(nome.toStdString(), raca, 1); break;
+                }
+
+                // Sobrecarga de operador + para itens e experiência iniciais
+                *heroi + new Arma("Espada de Aço", "Arma cortante afiada", 3.0f, 15.0f);
+                *heroi + new Pocao("Poção de Cura", "Restaura 50 de vida", 0.5f, 50.0f);
+                *heroi + new PocaoEnergia("Poção de Energia", "Restaura 30 de energia", 0.5f, 30.0f);
+                *heroi + new ItemEspecial("Cristal Divino", "Restaura 25 de energia", 0.2f, 25.0f);
+                *heroi + 10.0f; // Adiciona 10 XP usando operador +
+
+                inicializado = true;
+                progressoBatalha = 0;
+                createDialog.accept();
+                welcomeDialog.accept();
+            } catch (const RPGException& e) {
+                QMessageBox::warning(&createDialog, "Erro", e.what());
+                if (heroi) {
+                    delete heroi;
+                    heroi = nullptr;
+                }
             }
-
-            // Sobrecarga de operador + para itens e experiência iniciais
-            *heroi + new Arma("Espada de Aço", "Arma cortante afiada", 3.0f, 15.0f);
-            *heroi + new Pocao("Poção de Cura", "Restaura 50 de vida", 0.5f, 50.0f);
-            *heroi + new PocaoEnergia("Poção de Energia", "Restaura 30 de energia", 0.5f, 30.0f);
-            *heroi + new ItemEspecial("Cristal Divino", "Restaura 25 de energia", 0.2f, 25.0f);
-            *heroi + 10.0f; // Adiciona 10 XP usando operador +
-
-            inicializado = true;
-            progressoBatalha = 0;
-            createDialog.accept();
-            welcomeDialog.accept();
         });
 
         createDialog.exec();
@@ -626,36 +637,46 @@ void MainWindow::onIniciarArena() {
 }
 
 void MainWindow::onAtaqueBasico() {
-    if (!emCombate || !monstroAtual) return;
+    try {
+        if (!emCombate || !monstroAtual || !monstroAtual->isVivo()) {
+            throw CombateException("Nenhum inimigo válido na arena para atacar!");
+        }
 
-    logarInfo("----------------- TURNO JOGADOR -----------------");
-    std::cout << heroi->getNome() << " realiza um ataque básico!\n";
-    monstroAtual->receberDano(heroi->getDanoTotal());
-    
-    // Recupera 15 de energia por realizar ataque básico
-    heroi->recuperarEnergia(15.0f);
-    std::cout << heroi->getNome() << " recuperou 15 de energia pelo ataque básico.\n";
+        logarInfo("----------------- TURNO JOGADOR -----------------");
+        std::cout << heroi->getNome() << " realiza um ataque básico!\n";
+        monstroAtual->receberDano(heroi->getDanoTotal());
+        
+        // Recupera 15 de energia por realizar ataque básico
+        heroi->recuperarEnergia(15.0f);
+        std::cout << heroi->getNome() << " recuperou 15 de energia pelo ataque básico.\n";
 
-    atualizarFicha();
-    atualizarArena();
-    verificarFimDeCombate();
+        atualizarFicha();
+        atualizarArena();
+        verificarFimDeCombate();
 
-    if (emCombate) {
-        processarTurnoMonstro();
+        if (emCombate) {
+            processarTurnoMonstro();
+        }
+    } catch (const RPGException& e) {
+        logarInfo(QString("Erro: ") + e.what());
+        QMessageBox::warning(this, "Ação Inválida", e.what());
     }
 }
 
 void MainWindow::onUsarHabilidade() {
-    if (!emCombate || !monstroAtual) return;
+    try {
+        if (!emCombate || !monstroAtual || !monstroAtual->isVivo()) {
+            throw CombateException("Nenhum inimigo válido na arena para atacar!");
+        }
 
-    int idx = comboHabilidades->currentIndex();
-    Habilidade* hab = heroi->escolherHabilidade(idx);
-    if (!hab) return;
+        int idx = comboHabilidades->currentIndex();
+        Habilidade* hab = heroi->escolherHabilidade(idx);
+        if (!hab) return;
 
-    logarInfo("----------------- TURNO JOGADOR -----------------");
-    
-    // Gasta energia da entidade
-    if (heroi->gastarEnergia(hab->getCustoEnergia())) {
+        logarInfo("----------------- TURNO JOGADOR -----------------");
+        
+        // Gasta energia da entidade, lança HabilidadeException
+        heroi->gastarEnergia(hab->getCustoEnergia());
         hab->usar(heroi, monstroAtual);
         atualizarFicha();
         atualizarArena();
@@ -664,8 +685,9 @@ void MainWindow::onUsarHabilidade() {
         if (emCombate) {
             processarTurnoMonstro();
         }
-    } else {
-        logarInfo("Erro: Energia insuficiente para conjurar esta habilidade!");
+    } catch (const RPGException& e) {
+        logarInfo(QString("Erro: ") + e.what());
+        QMessageBox::warning(this, "Ação Inválida", e.what());
     }
 }
 
@@ -725,8 +747,13 @@ void MainWindow::verificarFimDeCombate() {
         }
 
         if (drop) {
-            *heroi + drop; // Adiciona item usando operador +
-            logarInfo("O monstro dropou: " + QString::fromStdString(drop->getNome()) + " que foi adicionado ao seu inventário.");
+            try {
+                *heroi + drop; // Adiciona item usando operador +
+                logarInfo("O monstro dropou: " + QString::fromStdString(drop->getNome()) + " que foi adicionado ao seu inventário.");
+            } catch (const InventarioException& e) {
+                logarInfo(QString("O monstro dropou um item, mas: ") + e.what());
+                delete drop; // Evitar memory leak do item perdido
+            }
         }
 
         progressoBatalha++;
@@ -748,9 +775,10 @@ void MainWindow::verificarFimDeCombate() {
 
 void MainWindow::onSalvarJogo() {
     if (!heroi || emCombate) return;
-    if (Persistencia::salvarJogo(heroi, "savegame.txt", progressoBatalha)) {
+    try {
+        Persistencia::salvarJogo(heroi, "savegame.txt", progressoBatalha);
         QMessageBox::information(this, "Salvar", "Jogo salvo com sucesso em savegame.txt!");
-    } else {
-        QMessageBox::warning(this, "Erro", "Não foi possível salvar o jogo.");
+    } catch (const PersistenciaException& e) {
+        QMessageBox::warning(this, "Erro", e.what());
     }
 }

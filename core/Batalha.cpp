@@ -1,5 +1,6 @@
 #include "../include/Batalha.hpp"
 #include "../include/Item.hpp"
+#include "../include/Exceptions.hpp"
 #include <iostream>
 #include <cstdlib>
 
@@ -37,79 +38,92 @@ bool Batalha::iniciar() {
         cout << "\n";
         bool perdeuTurno = false;
         
-        if (escolhaAtaque == -2) {
-            heroi->exibirEquipamentos();
-            string slotEscolhido;
-            cout << "Digite o nome do slot para desequipar (Ex: Arma, Capacete) ou 0 para cancelar: ";
-            cin >> slotEscolhido;
-            if (slotEscolhido == "0") {
-                cout << "Ação cancelada. Turno reiniciado.\n";
-                continue;
-            } else if (slotEscolhido == "Arma" || slotEscolhido == "arma") {
-                heroi->desequiparArma();
-                continue;
-            } else {
-                heroi->desequiparArmadura(slotEscolhido);
-                continue;
-            }
-        } else if (escolhaAtaque == -1) {
-            heroi->getInventario().listarItens();
-            int escolhaItem;
-            cout << "Escolha um item (0 para cancelar): ";
-            cin >> escolhaItem;
-            
-            if (cin.fail()) {
-                cin.clear();
-                cin.ignore(10000, '\n');
-                escolhaItem = 0;
-            }
-            
-            if (escolhaItem > 0) {
-                Item* itemEscolhido = heroi->getInventario().getItem(escolhaItem - 1);
-                if (itemEscolhido) {
-                    itemEscolhido->usar(heroi, monstro);
-                    // Consumíveis (Poções, Bombas) são removidos após o uso
-                    if (itemEscolhido->getTipo() == TipoItem::Pocao || 
-                        itemEscolhido->getTipo() == TipoItem::PocaoEnergia || 
-                        itemEscolhido->getTipo() == TipoItem::Bomba ||
-                        itemEscolhido->getTipo() == TipoItem::Especial) {
-                        heroi->getInventario().removerItem(itemEscolhido);
-                        delete itemEscolhido; // Evitar memory leak pois não está mais no inventário
+        try {
+            if (escolhaAtaque == -2) {
+                heroi->exibirEquipamentos();
+                string slotEscolhido;
+                cout << "Digite o nome do slot para desequipar (Ex: Arma, Capacete) ou 0 para cancelar: ";
+                cin >> slotEscolhido;
+                if (slotEscolhido == "0") {
+                    cout << "Ação cancelada. Turno reiniciado.\n";
+                    continue;
+                } else if (slotEscolhido == "Arma" || slotEscolhido == "arma") {
+                    heroi->desequiparArma();
+                    continue;
+                } else {
+                    heroi->desequiparArmadura(slotEscolhido);
+                    continue;
+                }
+            } else if (escolhaAtaque == -1) {
+                heroi->getInventario().listarItens();
+                int escolhaItem;
+                cout << "Escolha um item (0 para cancelar): ";
+                cin >> escolhaItem;
+                
+                if (cin.fail()) {
+                    cin.clear();
+                    cin.ignore(10000, '\n');
+                    escolhaItem = 0;
+                }
+                
+                if (escolhaItem > 0) {
+                    Item* itemEscolhido = heroi->getInventario().getItem(escolhaItem - 1);
+                    if (itemEscolhido) {
+                        itemEscolhido->usar(heroi, monstro);
+                        // Consumíveis (Poções, Bombas) são removidos após o uso
+                        if (itemEscolhido->getTipo() == TipoItem::Pocao || 
+                            itemEscolhido->getTipo() == TipoItem::PocaoEnergia || 
+                            itemEscolhido->getTipo() == TipoItem::Bomba ||
+                            itemEscolhido->getTipo() == TipoItem::Especial) {
+                            heroi->getInventario().removerItem(itemEscolhido);
+                            delete itemEscolhido; // Evitar memory leak pois não está mais no inventário
+                        }
+                        perdeuTurno = true;
+                    } else {
+                        cout << "Item inválido!\n";
                     }
+                } else {
+                    cout << "Ação cancelada. Turno reiniciado.\n";
+                    continue; // Volta ao início do while, não avança o turno
+                }
+            } else if (escolhaAtaque == 0) {
+                // Ataque básico
+                cout << heroi->getNome() << " realiza um ataque básico!\n";
+                monstro->receberDano(heroi->getDanoTotal());
+                perdeuTurno = true;
+            } else {
+                Habilidade* hab = heroi->escolherHabilidade(escolhaAtaque - 1);
+                if (hab) {
+                    // Check if has energy before using, now gastarEnergia throws if insufficient!
+                    heroi->gastarEnergia(hab->getCustoEnergia());
+                    hab->usar(heroi, monstro);
                     perdeuTurno = true;
                 } else {
-                    cout << "Item inválido!\n";
+                    cout << "Ação inválida, perdeu o turno!\n";
+                    perdeuTurno = true;
                 }
-            } else {
-                cout << "Ação cancelada. Turno reiniciado.\n";
-                continue; // Volta ao início do while, não avança o turno
             }
-        } else if (escolhaAtaque == 0) {
-            // Ataque básico
-            cout << heroi->getNome() << " realiza um ataque básico!\n";
-            monstro->receberDano(heroi->getDanoTotal());
-            perdeuTurno = true;
-        } else {
-            Habilidade* hab = heroi->escolherHabilidade(escolhaAtaque - 1);
-            if (hab) {
-                hab->usar(heroi, monstro);
-                perdeuTurno = true;
-            } else {
-                cout << "Ação inválida, perdeu o turno!\n";
-                perdeuTurno = true;
-            }
+        } catch (const RPGException& e) {
+            cout << "Erro: " << e.what() << "\n";
+            cout << "Tente novamente.\n";
+            continue;
         }
 
         if (!perdeuTurno) continue;
 
         if (!monstro->isVivo()) {
             cout << "\n>>> VOCÊ DERROTOU O " << monstro->getNome() << "! <<<\n";
-            Item* drop = gerarDropAleatorio();
-            if (drop) {
-                cout << ">>> O monstro dropou: " << drop->getNome() << " (" << drop->getDescricao() << ") <<<\n\n";
-                heroi->getInventario().adicionarItem(drop);
-            } else {
-                cout << "\n";
+            try {
+                Item* drop = gerarDropAleatorio();
+                if (drop) {
+                    cout << ">>> O monstro dropou: " << drop->getNome() << " (" << drop->getDescricao() << ") <<<\n\n";
+                    heroi->getInventario().adicionarItem(drop);
+                } else {
+                    cout << "\n";
+                }
+            } catch (const InventarioException& e) {
+                cout << "O monstro dropou um item, mas: " << e.what() << "\n\n";
+                // Item perdido, ou eu poderia dar a opção de dropar algo. Para simplificar, perde-se.
             }
             heroi->ganharExperiencia(50.0f * monstro->getNivel());
             return true;

@@ -1,5 +1,6 @@
 #include "../include/Personagem.hpp"
 #include "../include/Item.hpp"
+#include "../include/Exceptions.hpp"
 #include <iostream>
 
 Personagem::Personagem(string p_nome, string p_classeRPG, Raca* p_raca, int p_nivel, float p_vidaBase, float p_forca, float p_inteligencia)
@@ -8,7 +9,11 @@ Personagem::Personagem(string p_nome, string p_classeRPG, Raca* p_raca, int p_ni
       inventario(50.0f), // 50kg de capacidade inicial
       forca(p_forca + (p_raca ? p_raca->getBonusForca() : 0.0f)),
       inteligencia(p_inteligencia + (p_raca ? p_raca->getBonusInteligencia() : 0.0f)),
-      armaEquipada(nullptr) {}
+      armaEquipada(nullptr) {
+    if (p_vidaBase < 0 || p_forca < 0 || p_inteligencia < 0) {
+        throw PersonagemException("Atributos base (vida, forca, inteligencia) não podem ser negativos!");
+    }
+}
 
 Personagem::~Personagem() {
     delete raca;

@@ -1,4 +1,5 @@
 #include "../include/Entidade.hpp"
+#include "../include/Exceptions.hpp"
 
 Entidade::Entidade(string p_nome, int p_nivel, float p_vida, float p_energia)
     : nome(p_nome), nivel(p_nivel), vida(p_vida), maxVida(p_vida), energia(p_energia), maxEnergia(p_energia) {}
@@ -41,12 +42,12 @@ void Entidade::recuperarEnergia(float quantidade) {
     }
 }
 
-bool Entidade::gastarEnergia(float quantidade) {
+void Entidade::gastarEnergia(float quantidade) {
     if (energia >= quantidade) {
         energia -= quantidade;
-        return true;
+        return;
     }
-    return false;
+    throw HabilidadeException("Energia insuficiente!");
 }
 
 bool Entidade::isVivo() const {

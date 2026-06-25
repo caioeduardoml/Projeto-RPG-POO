@@ -29,6 +29,10 @@ protected:
     std::map<std::string, Armadura*> armadurasEquipadas;
 
 public:
+    /**
+     * @brief Construtor de Personagem.
+     * @throws PersonagemException Se atributos base (vida, forca, inteligencia) forem negativos.
+     */
     Personagem(string p_nome, string p_classeRPG, Raca* p_raca, int p_nivel, float p_vidaBase, float p_forca, float p_inteligencia);
     ~Personagem() override;
 

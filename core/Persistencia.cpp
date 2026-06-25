@@ -10,11 +10,12 @@
 #include "../include/ConstrutorEnergia.hpp"
 #include "../include/Clerigo.hpp"
 #include "../include/Raca.hpp"
-bool Persistencia::salvarJogo(Personagem* personagem, const string& arquivo, int progressoBatalha) {
+#include "../include/Exceptions.hpp"
+
+void Persistencia::salvarJogo(Personagem* personagem, const string& arquivo, int progressoBatalha) {
     ofstream out(arquivo);
     if (!out.is_open()) {
-        cerr << "Erro ao abrir arquivo para salvar!\n";
-        return false;
+        throw PersistenciaException("Erro ao abrir arquivo para salvar!");
     }
 
     out << "Nome:" << personagem->getNome() << "\n";
@@ -32,14 +33,12 @@ bool Persistencia::salvarJogo(Personagem* personagem, const string& arquivo, int
 
     out.close();
     cout << "Jogo salvo com sucesso em " << arquivo << "!\n";
-    return true;
 }
 
 Personagem* Persistencia::carregarJogo(const string& arquivo, int& progressoBatalha) {
     ifstream in(arquivo);
     if (!in.is_open()) {
-        cerr << "Erro ao abrir arquivo para carregar!\n";
-        return nullptr;
+        throw PersistenciaException("Erro ao abrir arquivo para carregar!");
     }
 
     string linha;
@@ -68,7 +67,9 @@ Personagem* Persistencia::carregarJogo(const string& arquivo, int& progressoBata
 
     progressoBatalha = prog;
 
-    if (nome.empty() || classe.empty()) return nullptr;
+    if (nome.empty() || classe.empty()) {
+        throw PersistenciaException("Arquivo de savegame corrompido ou mal formatado!");
+    }
 
     Raca* raca = nullptr;
     if (racaStr == "Humano") raca = new Humano();

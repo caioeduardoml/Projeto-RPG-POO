@@ -16,7 +16,12 @@ public:
     Inventario(float p_capacidade);
     ~Inventario();
 
-    bool adicionarItem(Item* item);
+    /**
+     * @brief Adiciona um item ao inventário.
+     * @param item O item a ser adicionado.
+     * @throws InventarioException Se o inventário estiver cheio (capacidade excedida).
+     */
+    void adicionarItem(Item* item);
     bool removerItem(Item* item);
     
     void listarItens() const;

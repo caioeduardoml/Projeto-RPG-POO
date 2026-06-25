@@ -1,4 +1,5 @@
 #include "../include/Inventario.hpp"
+#include "../include/Exceptions.hpp"
 #include <iostream>
 #include <algorithm>
 
@@ -11,14 +12,12 @@ Inventario::~Inventario() {
     itens.clear();
 }
 
-bool Inventario::adicionarItem(Item* item) {
+void Inventario::adicionarItem(Item* item) {
     if (pesoAtual + item->getPeso() > capacidadePeso) {
-        cout << "Inventário cheio! Não é possível adicionar " << item->getNome() << ".\n";
-        return false;
+        throw InventarioException("Inventário cheio! Não é possível adicionar " + item->getNome() + ".");
     }
     itens.push_back(item);
     pesoAtual += item->getPeso();
-    return true;
 }
 
 bool Inventario::removerItem(Item* item) {
