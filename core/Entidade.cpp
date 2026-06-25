@@ -1,62 +1,66 @@
 #include "../include/Entidade.hpp"
 #include "../include/Exceptions.hpp"
+#include <iostream>
 
-Entidade::Entidade(string p_nome, int p_nivel, float p_vida, float p_energia)
-    : nome(p_nome), nivel(p_nivel), vida(p_vida), maxVida(p_vida), energia(p_energia), maxEnergia(p_energia) {}
+namespace RpgGame {
 
-string Entidade::getNome() const {
+Entidade::Entidade(std::string p_nome, int p_nivel, int p_vida, int p_energia)
+    : nome(p_nome), nivel(p_nivel), pontos_vida_atual(p_vida), pontos_vida_max(p_vida), 
+      energia_atual(p_energia), energia_max(p_energia) {}
+
+std::string Entidade::get_nome() const {
     return nome;
 }
 
-int Entidade::getNivel() const {
+int Entidade::get_nivel() const {
     return nivel;
 }
 
-float Entidade::getVida() const {
-    return vida;
+int Entidade::get_pontos_vida_atual() const {
+    return pontos_vida_atual;
 }
 
-float Entidade::getMaxVida() const {
-    return maxVida;
+int Entidade::get_pontos_vida_max() const {
+    return pontos_vida_max;
 }
 
-float Entidade::getEnergia() const {
-    return energia;
+int Entidade::get_energia_atual() const {
+    return energia_atual;
 }
 
-float Entidade::getMaxEnergia() const {
-    return maxEnergia;
+int Entidade::get_energia_max() const {
+    return energia_max;
 }
 
-void Entidade::recuperarVida(float quantidade) {
-    vida += quantidade;
-    if (vida > maxVida) {
-        vida = maxVida;
+void Entidade::recuperar_vida(int quantidade) {
+    pontos_vida_atual += quantidade;
+    if (pontos_vida_atual > pontos_vida_max) {
+        pontos_vida_atual = pontos_vida_max;
     }
 }
 
-void Entidade::recuperarEnergia(float quantidade) {
-    energia += quantidade;
-    if (energia > maxEnergia) {
-        energia = maxEnergia;
+void Entidade::recuperar_energia(int quantidade) {
+    energia_atual += quantidade;
+    if (energia_atual > energia_max) {
+        energia_atual = energia_max;
     }
 }
 
-void Entidade::gastarEnergia(float quantidade) {
-    if (energia >= quantidade) {
-        energia -= quantidade;
+void Entidade::gastar_energia(int quantidade) {
+    if (energia_atual >= quantidade) {
+        energia_atual -= quantidade;
         return;
     }
     throw HabilidadeException("Energia insuficiente!");
 }
 
-bool Entidade::isVivo() const {
-    return vida > 0;
+bool Entidade::is_vivo() const {
+    return pontos_vida_atual > 0;
 }
 
-void Entidade::exibirStatus() const {
-    cout << "[" << nome << " Nv." << nivel << "] | Vida: " << vida << "/" << maxVida 
-         << " | Energia: " << energia << "/" << maxEnergia << "\n";
+void Entidade::exibir_status() const {
+    std::cout << "[" << nome << " Nv." << nivel << "] | Vida: " << pontos_vida_atual << "/" << pontos_vida_max 
+              << " | Energia: " << energia_atual << "/" << energia_max << "\n";
 }
 
 bool Entidade::operator==(const Entidade& outra) const {
@@ -67,3 +71,4 @@ bool Entidade::operator<(const Entidade& outra) const {
     return this->nivel < outra.nivel;
 }
 
+} // namespace RpgGame

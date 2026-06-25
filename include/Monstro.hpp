@@ -2,22 +2,28 @@
 #define MONSTRO_HPP
 
 #include "Entidade.hpp"
+#include "ComportamentoAtaque.hpp"
+#include <memory>
+
+namespace RpgGame {
 
 class Monstro : public Entidade {
 protected:
-    float forca;
-    float inteligencia;
+    int forca;
+    int inteligencia;
+    std::shared_ptr<ComportamentoAtaque> comportamento_ataque; // Strategy Pattern
 
 public:
-    Monstro(string p_nome, int p_nivel, float p_vida, float p_forca, float p_inteligencia);
+    Monstro(std::string p_nome, int p_nivel, int p_vida, int p_forca, int p_inteligencia);
     ~Monstro() override = default;
 
-    float getForca() const;
-    float getInteligencia() const;
+    int get_forca() const;
+    int get_inteligencia() const;
     
-    void receberDano(float dano) override;
+    void receber_dano(int dano) override;
     
-    virtual float realizarAtaque() const;
+    virtual int realizar_ataque() const;
+    void set_comportamento_ataque(std::shared_ptr<ComportamentoAtaque> comp);
 };
 
 class Goblin : public Monstro {
@@ -46,8 +52,10 @@ public:
 };
 
 class PeppaPig : public Monstro {
-    public:
-        PeppaPig();
+public:
+    PeppaPig();
 };
+
+} // namespace RpgGame
 
 #endif // MONSTRO_HPP

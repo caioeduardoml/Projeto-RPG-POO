@@ -7,67 +7,72 @@
 #include "Habilidade.hpp"
 #include <vector>
 #include <map>
+#include <memory>
 
-using namespace std;
+namespace RpgGame {
 
 class Arma;
 class Armadura;
 
 class Personagem : public Entidade {
+private:
+    std::string raca; // name of the race as required by PDF page 4
+    std::string classe_rpg; // as required by PDF page 4
+    int experiencia; // as required by PDF page 4
+    Inventario inventario; // as required by PDF page 4 (Composition)
+    std::vector<std::unique_ptr<Habilidade>> habilidades; // as required by PDF page 4 (Polymorphic aggregation)
+
 protected:
-    string classeRPG;
-    Raca* raca;
-    float experiencia;
-    float expProximoNivel;
-    Inventario inventario;
-    vector<Habilidade*> habilidades;
+    std::shared_ptr<Raca> objeto_raca; // internal reference to the Raca object for bonuses
+    int exp_proximo_nivel;
+    int forca;
+    int inteligencia;
 
-    float forca;
-    float inteligencia;
-
-    Arma* armaEquipada;
-    std::map<std::string, Armadura*> armadurasEquipadas;
+    std::shared_ptr<Arma> armaEquipada;
+    std::map<std::string, std::shared_ptr<Armadura>> armadurasEquipadas;
 
 public:
-    /**
-     * @brief Construtor de Personagem.
-     * @throws PersonagemException Se atributos base (vida, forca, inteligencia) forem negativos.
-     */
-    Personagem(string p_nome, string p_classeRPG, Raca* p_raca, int p_nivel, float p_vidaBase, float p_forca, float p_inteligencia);
-    ~Personagem() override;
+    Personagem(std::string p_nome, std::string p_classe_rpg, std::shared_ptr<Raca> p_raca, int p_nivel, int p_vidaBase, int p_forca, int p_inteligencia);
+    ~Personagem() override = default; // std::unique_ptr and std::shared_ptr handle deletions automatically!
 
-    string getClasseRPG() const;
-    Raca* getRaca() const;
-    float getExperiencia() const;
-    Inventario& getInventario();
-    Arma* getArmaEquipada() const { return armaEquipada; }
-    const std::map<std::string, Armadura*>& getArmadurasEquipadas() const { return armadurasEquipadas; }
+    std::string get_classe_rpg() const;
+    std::string get_raca() const;
+    std::shared_ptr<Raca> get_objeto_raca() const;
+    int get_experiencia() const;
+    int get_exp_proximo_nivel() const;
+    Inventario& get_inventario();
+    std::shared_ptr<Arma> get_arma_equipada() const { return armaEquipada; }
+    const std::map<std::string, std::shared_ptr<Armadura>>& get_armaduras_equipadas() const { return armadurasEquipadas; }
 
-    void adicionarHabilidade(Habilidade* habilidade);
-    void listarHabilidades() const;
-    Habilidade* escolherHabilidade(int indice) const;
+    void adicionar_habilidade(std::unique_ptr<Habilidade> habilidade);
+    void listar_habilidades() const;
+    Habilidade* escolher_habilidade(int indice) const;
 
-    void ganharExperiencia(float exp);
-    virtual void subirNivel() = 0; // Pure virtual, must be implemented by concrete classes
+    void ganhar_experiencia(int exp_ganha); // as required by PDF page 4
+    virtual void subir_nivel() = 0; // Pure virtual hook for Template Method
 
-    void restaurarEstado(int p_nivel_salvo, float p_xp, float p_vidaMax, float p_vidaAtual);
+    void restaurar_estado(int p_nivel_salvo, int p_xp, int p_vidaMax, int p_vidaAtual);
 
-    void equiparArma(Arma* arma);
-    void equiparArmadura(Armadura* armadura);
-    void desequiparArma();
-    void desequiparArmadura(const string& slot);
-    float getDanoTotal() const;
-    float getDefesaTotal() const;
-    void exibirEquipamentos() const;
+    void equipar_item(std::shared_ptr<Item> item); // as required by PDF page 4
+    void desequipar_item(std::string nome_item); // as required by PDF page 4
+    void usar_item(std::string nome_item); // as required by PDF page 4
 
-    void receberDano(float dano) override;
-    void exibirStatus() const override;
+    int get_dano_total() const;
+    int get_defesa_total() const;
+    int get_forca() const;
+    int get_inteligencia() const;
+    void exibir_equipamentos() const;
 
-    // Sobrecarga de operador << solicitada na especificação
-    friend ostream& operator<<(ostream& os, const Personagem& p);
+    void receber_dano(int dano) override;
+    void exibir_status() const override;
+    void atacar(Entidade& alvo, int index_habilidade);
 
-    Personagem& operator+(float exp);
-    Personagem& operator+(Item* item);
+    friend std::ostream& operator<<(std::ostream& os, const Personagem& p);
+
+    Personagem& operator+(int exp);
+    Personagem& operator+(std::shared_ptr<Item> item);
 };
+
+} // namespace RpgGame
 
 #endif // PERSONAGEM_HPP

@@ -4,43 +4,40 @@
 #include <string>
 #include <iostream>
 
-using namespace std;
+namespace RpgGame {
 
 class Entidade {
 protected:
-    string nome;
+    std::string nome;
     int nivel;
-    float vida;
-    float maxVida;
-    float energia;
-    float maxEnergia;
+    int pontos_vida_atual;
+    int pontos_vida_max;
+    int energia_atual;
+    int energia_max;
 
 public:
-    Entidade(string p_nome, int p_nivel, float p_vida, float p_energia = 50.0f);
+    Entidade(std::string p_nome, int p_nivel, int p_vida, int p_energia = 50);
     virtual ~Entidade() = default;
 
-    string getNome() const;
-    int getNivel() const;
-    float getVida() const;
-    float getMaxVida() const;
-    float getEnergia() const;
-    float getMaxEnergia() const;
+    std::string get_nome() const;
+    int get_nivel() const;
+    int get_pontos_vida_atual() const;
+    int get_pontos_vida_max() const;
+    int get_energia_atual() const;
+    int get_energia_max() const;
 
-    virtual void receberDano(float dano) = 0;
-    virtual void recuperarVida(float quantidade);
-    virtual void recuperarEnergia(float quantidade);
-    /**
-     * @brief Tenta gastar energia da entidade.
-     * @param quantidade A quantidade a gastar.
-     * @throws HabilidadeException Se a entidade não tiver energia suficiente.
-     */
-    virtual void gastarEnergia(float quantidade);
-    bool isVivo() const;
+    virtual void receber_dano(int dano) = 0;
+    virtual void recuperar_vida(int quantidade);
+    virtual void recuperar_energia(int quantidade);
+    virtual void gastar_energia(int quantidade);
+    bool is_vivo() const;
 
-    virtual void exibirStatus() const;
+    virtual void exibir_status() const;
 
     bool operator==(const Entidade& outra) const;
     bool operator<(const Entidade& outra) const;
 };
+
+} // namespace RpgGame
 
 #endif // ENTIDADE_HPP

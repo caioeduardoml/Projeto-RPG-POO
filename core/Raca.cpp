@@ -1,16 +1,19 @@
 #include "../include/Raca.hpp"
 
-Raca::Raca(string p_nomeRaca, float p_bonusVida, float p_bonusForca, float p_bonusInteligencia)
+namespace RpgGame {
+
+Raca::Raca(std::string p_nomeRaca, int p_bonusVida, int p_bonusForca, int p_bonusInteligencia)
     : nomeRaca(p_nomeRaca), bonusVida(p_bonusVida), bonusForca(p_bonusForca), bonusInteligencia(p_bonusInteligencia) {}
 
-string Raca::getNomeRaca() const { return nomeRaca; }
-float Raca::getBonusVida() const { return bonusVida; }
-float Raca::getBonusForca() const { return bonusForca; }
-float Raca::getBonusInteligencia() const { return bonusInteligencia; }
+std::string Raca::get_nome_raca() const { return nomeRaca; }
+int Raca::get_bonus_vida() const { return bonusVida; }
+int Raca::get_bonus_forca() const { return bonusForca; }
+int Raca::get_bonus_inteligencia() const { return bonusInteligencia; }
 
-Humano::Humano() : Raca("Humano", 10.0f, 5.0f, 5.0f) {}
-Elfo::Elfo() : Raca("Elfo", -5.0f, 2.0f, 10.0f) {}
-Anao::Anao() : Raca("Anão", 20.0f, 10.0f, -5.0f) {}
-Orc::Orc() : Raca("Orc", 15.0f, 15.0f, -10.0f) {}
-Dragao::Dragao() : Raca("Dragao", 30.0f, 30.0f, -10.0f) {}
+Humano::Humano() : Raca("Humano", 10, 5, 5) {}
+Elfo::Elfo() : Raca("Elfo", -5, 2, 10) {}
+Anao::Anao() : Raca("Anão", 20, 10, -5) {}
+Orc::Orc() : Raca("Orc", 15, 15, -10) {}
+Dragao::Dragao() : Raca("Dragão", 30, 30, -10) {}
 
+} // namespace RpgGame

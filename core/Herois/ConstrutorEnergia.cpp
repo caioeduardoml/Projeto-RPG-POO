@@ -1,32 +1,41 @@
-#include "../include/ConstrutorEnergia.hpp"
+#include "../../include/ConstrutorEnergia.hpp"
+#include "../../include/GerenciadorJogo.hpp"
 #include <iostream>
+#include <memory>
 
-ConstrutorEnergia::ConstrutorEnergia(string p_nome, Raca* p_raca, int p_nivel)
-    : Personagem(p_nome, "Construtor de Energia", p_raca, p_nivel, 150.0f, 20.0f, 20.0f) {
-    adicionarHabilidade(new HabilidadeOfensiva("Kamehameha", "Ataque massivo de energia", 50.0f, 100.0f));
+namespace RpgGame {
+
+ConstrutorEnergia::ConstrutorEnergia(std::string p_nome, std::shared_ptr<Raca> p_raca, int p_nivel)
+    : Personagem(p_nome, "Construtor de Energia", p_raca, p_nivel, 150, 20, 20) {
+    adicionar_habilidade(std::make_unique<HabilidadeOfensiva>("Kamehameha", "Ataque massivo de energia", 50, 100));
 }
 
-void ConstrutorEnergia::subirNivel() {
-    maxVida += 50.0f;
-    vida = maxVida;
-    forca += 10.0f;
-    inteligencia += 10.0f;
-    cout << nome << " subiu para o nível " << nivel << "!\n";
+void ConstrutorEnergia::subir_nivel() {
+    pontos_vida_max += 50;
+    pontos_vida_atual = pontos_vida_max;
+    forca += 10;
+    inteligencia += 10;
+    
+    std::string msg = nome + " subiu para o nível " + std::to_string(nivel) + "!\n" +
+                      "Vida máxima aumentada para " + std::to_string(pontos_vida_max) + ".";
+    GerenciadorJogo::get_instancia().notificar(msg);
 
     if (nivel == 2) {
-        cout << ">>> Nova Habilidade Desbloqueada: Escudo de Energia! <<<\n";
-        adicionarHabilidade(new HabilidadeDefensiva("Escudo de Energia", "Escudo que protege contra ataques", 0.0f, 50.0f));
+        adicionar_habilidade(std::make_unique<HabilidadeDefensiva>("Escudo de Energia", "Escudo que protege contra ataques", 0, 50));
+        GerenciadorJogo::get_instancia().notificar(">>> Nova Habilidade Desbloqueada: Escudo de Energia! <<<");
     } else if (nivel == 3) {
-        cout << ">>> Nova Habilidade Desbloqueada: Golpe de Energia! <<<\n";
-        adicionarHabilidade(new HabilidadeOfensiva("Golpe de Energia", "Golpe de energia", 50.0f, 50.0f));
+        adicionar_habilidade(std::make_unique<HabilidadeOfensiva>("Golpe de Energia", "Golpe de energia", 50, 50));
+        GerenciadorJogo::get_instancia().notificar(">>> Nova Habilidade Desbloqueada: Golpe de Energia! <<<");
     } else if (nivel == 4) {
-        cout << ">>> Nova Habilidade Desbloqueada: Sobrecarga! <<<\n";
-        adicionarHabilidade(new HabilidadeOfensiva("Sobrecarga", "Explosão de energia massiva", 70.0f, 150.0f));
+        adicionar_habilidade(std::make_unique<HabilidadeOfensiva>("Sobrecarga", "Explosão de energia massiva", 70, 150));
+        GerenciadorJogo::get_instancia().notificar(">>> Nova Habilidade Desbloqueada: Sobrecarga! <<<");
     } else if (nivel == 5) {
-        cout << ">>> Nova Habilidade Desbloqueada: Bateria Infinita! <<<\n";
-        adicionarHabilidade(new HabilidadeSuporte("Bateria Infinita", "Restaura muita energia", 0.0f, 200.0f));
+        adicionar_habilidade(std::make_unique<HabilidadeSuporte>("Bateria Infinita", "Restaura muita energia", 0, 200));
+        GerenciadorJogo::get_instancia().notificar(">>> Nova Habilidade Desbloqueada: Bateria Infinita! <<<");
     } else if (nivel == 6) {
-        cout << ">>> Nova Habilidade Desbloqueada: Genki Dama! <<<\n";
-        adicionarHabilidade(new HabilidadeOfensiva("Genki Dama", "Ataque supremo de energia", 100.0f, 300.0f));
+        adicionar_habilidade(std::make_unique<HabilidadeOfensiva>("Genki Dama", "Ataque supremo de energia", 100, 300));
+        GerenciadorJogo::get_instancia().notificar(">>> Nova Habilidade Desbloqueada: Genki Dama! <<<");
     }
 }
+
+} // namespace RpgGame

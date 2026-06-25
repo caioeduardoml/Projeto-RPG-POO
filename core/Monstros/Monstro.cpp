@@ -1,32 +1,64 @@
-#include "../include/Monstro.hpp"
+#include "../../include/Monstro.hpp"
+#include "../../include/GerenciadorJogo.hpp"
 #include <iostream>
 
-Monstro::Monstro(string p_nome, int p_nivel, float p_vida, float p_forca, float p_inteligencia)
-    : Entidade(p_nome, p_nivel, p_vida), forca(p_forca), inteligencia(p_inteligencia) {}
+namespace RpgGame {
 
-float Monstro::getForca() const { return forca; }
-float Monstro::getInteligencia() const { return inteligencia; }
+Monstro::Monstro(std::string p_nome, int p_nivel, int p_vida, int p_forca, int p_inteligencia)
+    : Entidade(p_nome, p_nivel, p_vida), forca(p_forca), inteligencia(p_inteligencia), 
+      comportamento_ataque(std::make_shared<AtaqueFisicoFeroz>()) {}
 
-void Monstro::receberDano(float dano) {
-    vida -= dano;
-    if (vida < 0) vida = 0;
-    cout << "[" << nome << " recebe " << dano << " de dano!]\n";
+int Monstro::get_forca() const { return forca; }
+int Monstro::get_inteligencia() const { return inteligencia; }
+
+void Monstro::receber_dano(int dano) {
+    pontos_vida_atual -= dano;
+    if (pontos_vida_atual < 0) pontos_vida_atual = 0;
+    
+    std::string log = "[" + nome + " recebe " + std::to_string(dano) + " de dano!]";
+    GerenciadorJogo::get_instancia().notificar(log);
 }
 
-float Monstro::realizarAtaque() const {
-    cout << nome << " ataca ferozmente!\n";
-    return forca * 1.5f; // Dano simples baseado na força
+int Monstro::realizar_ataque() const {
+    if (comportamento_ataque) {
+        int dano = comportamento_ataque->calcular_dano(forca, inteligencia);
+        std::string log = nome + " usa " + comportamento_ataque->get_nome_ataque() + "!";
+        GerenciadorJogo::get_instancia().notificar(log);
+        return dano;
+    }
+    
+    std::string log = nome + " ataca ferozmente!";
+    GerenciadorJogo::get_instancia().notificar(log);
+    return static_cast<int>(forca * 1.5f);
 }
 
-Goblin::Goblin() : Monstro("Goblin", 1, 30.0f, 5.0f, 2.0f) {}
+void Monstro::set_comportamento_ataque(std::shared_ptr<ComportamentoAtaque> comp) {
+    comportamento_ataque = comp;
+}
 
-GoblinChefao::GoblinChefao() : Monstro("Goblin Chefao", 5, 100.0f, 20.0f, 5.0f) {}
+Goblin::Goblin() : Monstro("Goblin", 1, 30, 5, 2) {
+    set_comportamento_ataque(std::make_shared<AtaqueFisicoFeroz>());
+}
 
-// Renomeado para não conflitar com a Raca Orc
-OrcMonstro::OrcMonstro() : Monstro("Orc Furioso", 3, 80.0f, 15.0f, 3.0f) {}
+GoblinChefao::GoblinChefao() : Monstro("Goblin Chefao", 5, 100, 20, 5) {
+    set_comportamento_ataque(std::make_shared<AtaqueFisicoFeroz>());
+}
 
-GiganteMalvado::GiganteMalvado() : Monstro("Gigante Malvadão", 10, 300.0f, 50.0f, 40.0f) {}
+OrcMonstro::OrcMonstro() : Monstro("Orc Furioso", 3, 80, 15, 3) {
+    set_comportamento_ataque(std::make_shared<AtaqueFisicoFeroz>());
+}
 
-LoboMau::LoboMau() : Monstro("Lobo Mau", 5, 100.0f, 20.0f, 5.0f) {}
+GiganteMalvado::GiganteMalvado() : Monstro("Gigante Malvadão", 10, 300, 50, 40) {
+    set_comportamento_ataque(std::make_shared<AtaqueFisicoFeroz>());
+}
 
-PeppaPig::PeppaPig() : Monstro("Peppa Pig", 20, 1000.0f, 100.0f, 100.0f) {}
+LoboMau::LoboMau() : Monstro("Lobo Mau", 5, 100, 20, 5) {
+    set_comportamento_ataque(std::make_shared<AtaqueFisicoFeroz>());
+}
+
+PeppaPig::PeppaPig() : Monstro("Peppa Pig", 20, 1000, 100, 100) {
+    // Peppa pig usa ataque mágico arcano como graça!
+    set_comportamento_ataque(std::make_shared<AtaqueMagicoArcano>());
+}
+
+} // namespace RpgGame

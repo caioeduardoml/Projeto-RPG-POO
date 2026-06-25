@@ -3,74 +3,84 @@
 #include <iostream>
 #include <algorithm>
 
-Inventario::Inventario(float p_capacidade) : capacidadePeso(p_capacidade), pesoAtual(0.0f) {}
+namespace RpgGame {
 
-Inventario::~Inventario() {
-    for (Item* item : itens) {
-        delete item;
-    }
-    itens.clear();
-}
+Inventario::Inventario(double p_capacidade) 
+    : capacidade_peso_max(p_capacidade), peso_atual(0.0f) {}
 
-void Inventario::adicionarItem(Item* item) {
-    if (pesoAtual + item->getPeso() > capacidadePeso) {
-        throw InventarioException("Inventário cheio! Não é possível adicionar " + item->getNome() + ".");
+bool Inventario::adicionar_item(std::shared_ptr<Item> item) {
+    if (!item) return false;
+    if (peso_atual + item->get_peso() > capacidade_peso_max) {
+        throw InventarioException("Inventário cheio! Não é possível adicionar " + item->get_nome() + ".");
     }
     itens.push_back(item);
-    pesoAtual += item->getPeso();
+    peso_atual += item->get_peso();
+    return true;
 }
 
-bool Inventario::removerItem(Item* item) {
-    auto it = find(itens.begin(), itens.end(), item);
+void Inventario::remover_item(std::shared_ptr<Item> item) {
+    auto it = std::find(itens.begin(), itens.end(), item);
     if (it != itens.end()) {
-        pesoAtual -= (*it)->getPeso();
+        peso_atual -= (*it)->get_peso();
         itens.erase(it);
-        return true;
     }
-    return false;
 }
 
-void Inventario::listarItens() const {
-    cout << "--- Inventário (" << pesoAtual << "/" << capacidadePeso << " kg) ---\n";
+void Inventario::remover_item(const std::string& nome_item) {
+    auto it = std::find_if(itens.begin(), itens.end(), [&](const std::shared_ptr<Item>& item) {
+        return item && item->get_nome() == nome_item;
+    });
+    if (it != itens.end()) {
+        peso_atual -= (*it)->get_peso();
+        itens.erase(it);
+    }
+}
+
+void Inventario::listar_itens() const {
+    std::cout << "--- Inventário (" << peso_atual << "/" << capacidade_peso_max << " kg) ---\n";
     if (itens.empty()) {
-        cout << "Vazio.\n";
+        std::cout << "Vazio.\n";
         return;
     }
     for (size_t i = 0; i < itens.size(); ++i) {
-        cout << i+1 << ". " << itens[i]->getNome() << " - " << itens[i]->getDescricao() 
-             << " (" << itens[i]->getPeso() << " kg)\n";
+        if (itens[i]) {
+            std::cout << i+1 << ". " << itens[i]->get_nome() << " - " << itens[i]->get_descricao() 
+                      << " (" << itens[i]->get_peso() << " kg)\n";
+        }
     }
 }
 
-float Inventario::getPesoAtual() const { return pesoAtual; }
-float Inventario::getCapacidade() const { return capacidadePeso; }
+double Inventario::get_peso_atual() const { return peso_atual; }
+double Inventario::get_capacidade_peso_max() const { return capacidade_peso_max; }
 
-vector<Item*> Inventario::getItensPorTipo(TipoItem tipo) const {
-    vector<Item*> filtrados;
-    for (Item* item : itens) {
-        if (item->getTipo() == tipo) {
+std::vector<std::shared_ptr<Item>> Inventario::get_itens_por_tipo(TipoItem tipo) const {
+    std::vector<std::shared_ptr<Item>> filtrados;
+    for (const auto& item : itens) {
+        if (item && item->get_tipo() == tipo) {
             filtrados.push_back(item);
         }
     }
     return filtrados;
 }
 
-Item* Inventario::buscarItem(const string& nome) const {
-    for (Item* item : itens) {
-        if (item->getNome() == nome) {
+std::shared_ptr<Item> Inventario::buscar_item(const std::string& nome) const {
+    for (const auto& item : itens) {
+        if (item && item->get_nome() == nome) {
             return item;
         }
     }
     return nullptr;
 }
 
-Item* Inventario::getItem(int indice) const {
+std::shared_ptr<Item> Inventario::get_item(int indice) const {
     if (indice >= 0 && indice < static_cast<int>(itens.size())) {
         return itens[indice];
     }
     return nullptr;
 }
 
-int Inventario::getQuantidadeItens() const {
+int Inventario::get_quantidade_itens() const {
     return itens.size();
 }
+
+} // namespace RpgGame

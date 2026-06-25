@@ -4,6 +4,8 @@
 #include <stdexcept>
 #include <string>
 
+namespace RpgGame {
+
 /**
  * @brief Exceção base para o jogo RPG Manager.
  */
@@ -51,5 +53,7 @@ class PersistenciaException : public RPGException {
 public:
     explicit PersistenciaException(const std::string& msg) : RPGException("Erro de Persistencia: " + msg) {}
 };
+
+} // namespace RpgGame
 
 #endif // EXCEPTIONS_HPP

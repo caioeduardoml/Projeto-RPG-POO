@@ -3,10 +3,14 @@
 
 #include "Personagem.hpp"
 
+namespace RpgGame {
+
 class ConstrutorEnergia : public Personagem {
 public:
-    ConstrutorEnergia(string p_nome, Raca* p_raca, int p_nivel);
-    void subirNivel() override;
+    ConstrutorEnergia(std::string p_nome, std::shared_ptr<Raca> p_raca, int p_nivel);
+    void subir_nivel() override;
 };
+
+} // namespace RpgGame
 
 #endif // CONSTRUTORENERGIA_HPP

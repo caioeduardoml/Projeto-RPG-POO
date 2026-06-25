@@ -3,36 +3,35 @@
 
 #include "Item.hpp"
 #include <vector>
+#include <memory>
 
-using namespace std;
+namespace RpgGame {
 
 class Inventario {
 private:
-    vector<Item*> itens;
-    float capacidadePeso;
-    float pesoAtual;
+    std::vector<std::shared_ptr<Item>> itens;
+    double capacidade_peso_max;
+    double peso_atual;
 
 public:
-    Inventario(float p_capacidade);
-    ~Inventario();
+    Inventario(double p_capacidade);
+    ~Inventario() = default; // std::shared_ptr handles memory automatically!
 
-    /**
-     * @brief Adiciona um item ao inventário.
-     * @param item O item a ser adicionado.
-     * @throws InventarioException Se o inventário estiver cheio (capacidade excedida).
-     */
-    void adicionarItem(Item* item);
-    bool removerItem(Item* item);
+    bool adicionar_item(std::shared_ptr<Item> item);
+    void remover_item(std::shared_ptr<Item> item);
+    void remover_item(const std::string& nome_item);
     
-    void listarItens() const;
-    float getPesoAtual() const;
-    float getCapacidade() const;
+    void listar_itens() const;
+    double get_peso_atual() const;
+    double get_capacidade_peso_max() const;
     
-    vector<Item*> getItensPorTipo(TipoItem tipo) const;
-    Item* buscarItem(const string& nome) const;
+    std::vector<std::shared_ptr<Item>> get_itens_por_tipo(TipoItem tipo) const;
+    std::shared_ptr<Item> buscar_item(const std::string& nome) const;
     
-    Item* getItem(int indice) const;
-    int getQuantidadeItens() const;
+    std::shared_ptr<Item> get_item(int indice) const;
+    int get_quantidade_itens() const;
 };
+
+} // namespace RpgGame
 
 #endif // INVENTARIO_HPP

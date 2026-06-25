@@ -1,11 +1,9 @@
 #include "../include/MainWindow.hpp"
-#include "../include/Guerreiro.hpp"
+#include "../include/PersonagemFactory.hpp"
+#include "../include/GerenciadorJogo.hpp"
 #include "../include/Mago.hpp"
-#include "../include/Druida.hpp"
-#include "../include/Arqueiro.hpp"
-#include "../include/Ladrao.hpp"
-#include "../include/ConstrutorEnergia.hpp"
-#include "../include/Clerigo.hpp"
+#include "../include/Guerreiro.hpp"
+#include "../include/Exceptions.hpp"
 
 #include <QMessageBox>
 #include <QFormLayout>
@@ -13,10 +11,11 @@
 #include <QDebug>
 #include <QSplitter>
 #include <fstream>
-#include "../include/Exceptions.hpp"
+
+using namespace RpgGame;
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), heroi(nullptr), progressoBatalha(0), monstroAtual(nullptr), emCombate(false), streamRedirector(nullptr) {
+    : QMainWindow(parent), emCombate(false), streamRedirector(nullptr) {
     
     setWindowTitle("RPG Manager - UTFPR");
     resize(1000, 650);
@@ -64,7 +63,7 @@ MainWindow::MainWindow(QWidget *parent)
     barVida = new QProgressBar(grpHeroi);
     barVida->setStyleSheet("QProgressBar::chunk { background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #ff4e50, stop:1 #f9d423); }");
     
-    QLabel* lblNrgBar = new QLabel("Energia:", grpHeroi);
+    QLabel* lblNrgBar = new QLabel("Recurso:", grpHeroi);
     barEnergia = new QProgressBar(grpHeroi);
     barEnergia->setStyleSheet("QProgressBar::chunk { background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #00c6ff, stop:1 #0072ff); }");
 
@@ -168,16 +167,18 @@ MainWindow::MainWindow(QWidget *parent)
 
     // Redirecionador do std::cout
     streamRedirector = new QDebugStream(std::cout, textLogs);
+
+    // Registrar no Subject como Observer
+    GerenciadorJogo::get_instancia().registrarObserver(this);
 }
 
 MainWindow::~MainWindow() {
     delete streamRedirector;
-    if (heroi) {
-        delete heroi;
-    }
-    if (monstroAtual) {
-        delete monstroAtual;
-    }
+    GerenciadorJogo::get_instancia().removerObserver(this);
+}
+
+void MainWindow::aoAcontecerEvento(const std::string& log) {
+    logarInfo(QString::fromStdString(log));
 }
 
 bool MainWindow::mostrarWelcomeDialog() {
@@ -211,8 +212,11 @@ bool MainWindow::mostrarWelcomeDialog() {
         if (in.is_open()) {
             in.close();
             try {
-                heroi = Persistencia::carregarJogo("savegame.txt", progressoBatalha);
-                if (heroi) {
+                int prog = 0;
+                auto loadedHero = Persistencia::carregarJogo("savegame.txt", prog);
+                if (loadedHero) {
+                    GerenciadorJogo::get_instancia().set_heroi(loadedHero);
+                    GerenciadorJogo::get_instancia().set_progresso_batalha(prog);
                     inicializado = true;
                     welcomeDialog.accept();
                 }
@@ -254,47 +258,28 @@ bool MainWindow::mostrarWelcomeDialog() {
                 return;
             }
 
-            Raca* raca = nullptr;
-            int choiceRaca = cbRaca->currentIndex();
-            switch (choiceRaca) {
-                case 0: raca = new Humano(); break;
-                case 1: raca = new Elfo(); break;
-                case 2: raca = new Anao(); break;
-                case 3: raca = new Orc(); break;
-                case 4: raca = new Dragao(); break;
-                default: raca = new Humano(); break;
-            }
-
             try {
-                int choiceClass = cbClasse->currentIndex();
-                switch (choiceClass) {
-                    case 0: heroi = new Guerreiro(nome.toStdString(), raca, 1); break;
-                    case 1: heroi = new Mago(nome.toStdString(), raca, 1); break;
-                    case 2: heroi = new Arqueiro(nome.toStdString(), raca, 1); break;
-                    case 3: heroi = new Druida(nome.toStdString(), raca, 1); break;
-                    case 4: heroi = new Ladrao(nome.toStdString(), raca, 1); break;
-                    case 5: heroi = new ConstrutorEnergia(nome.toStdString(), raca, 1); break;
-                    case 6: heroi = new Clerigo(nome.toStdString(), raca, 1); break;
-                    default: heroi = new Guerreiro(nome.toStdString(), raca, 1); break;
-                }
+                std::string classeStr = cbClasse->currentText().toStdString();
+                std::string racaStr = cbRaca->currentText().toStdString();
+
+                // Usando a Factory de Personagem
+                auto newHero = PersonagemFactory::criar_personagem(nome.toStdString(), classeStr, racaStr, 1);
+                GerenciadorJogo::get_instancia().set_heroi(newHero);
 
                 // Sobrecarga de operador + para itens e experiência iniciais
-                *heroi + new Arma("Espada de Aço", "Arma cortante afiada", 3.0f, 15.0f);
-                *heroi + new Pocao("Poção de Cura", "Restaura 50 de vida", 0.5f, 50.0f);
-                *heroi + new PocaoEnergia("Poção de Energia", "Restaura 30 de energia", 0.5f, 30.0f);
-                *heroi + new ItemEspecial("Cristal Divino", "Restaura 25 de energia", 0.2f, 25.0f);
-                *heroi + 10.0f; // Adiciona 10 XP usando operador +
+                *newHero + std::make_shared<Arma>("Espada de Aço", "Arma cortante afiada", 3.0, 10, 15);
+                *newHero + std::make_shared<Pocao>("Poção de Cura", "Restaura 50 de vida", 0.5, 5, 50);
+                *newHero + std::make_shared<PocaoEnergia>("Poção de Energia", "Restaura 30 de energia", 0.5, 5, 30);
+                *newHero + std::make_shared<ItemEspecial>("Cristal Divino", "Restaura 25 de energia", 0.2, 20, 25);
+                *newHero + 10; // Adiciona 10 XP usando operador +
 
                 inicializado = true;
-                progressoBatalha = 0;
+                GerenciadorJogo::get_instancia().set_progresso_batalha(0);
                 createDialog.accept();
                 welcomeDialog.accept();
             } catch (const RPGException& e) {
                 QMessageBox::warning(&createDialog, "Erro", e.what());
-                if (heroi) {
-                    delete heroi;
-                    heroi = nullptr;
-                }
+                GerenciadorJogo::get_instancia().set_heroi(nullptr);
             }
         });
 
@@ -308,66 +293,76 @@ bool MainWindow::mostrarWelcomeDialog() {
         atualizarInventario();
         atualizarEquipados();
         atualizarArena();
-        logarInfo("Seja bem-vindo, " + QString::fromStdString(heroi->getNome()) + "! Sua aventura se inicia agora.");
+        auto heroi = GerenciadorJogo::get_instancia().get_heroi();
+        logarInfo("Seja bem-vindo, " + QString::fromStdString(heroi->get_nome()) + "! Sua aventura se inicia agora.");
         return true;
     }
     return false;
 }
 
 void MainWindow::atualizarFicha() {
+    auto heroi = GerenciadorJogo::get_instancia().get_heroi();
     if (!heroi) return;
     
-    lblNome->setText(QString("Nome: %1").arg(QString::fromStdString(heroi->getNome())));
+    lblNome->setText(QString("Nome: %1").arg(QString::fromStdString(heroi->get_nome())));
     lblClasseRaca->setText(QString("Classe: %1 | Raça: %2")
-        .arg(QString::fromStdString(heroi->getClasseRPG()))
-        .arg(QString::fromStdString(heroi->getRaca() ? heroi->getRaca()->getNomeRaca() : "Nenhuma")));
+        .arg(QString::fromStdString(heroi->get_classe_rpg()))
+        .arg(QString::fromStdString(heroi->get_raca())));
     
     // XP e Meta
-    float xp = heroi->getExperiencia();
-    // Meta XP é calculada internamente no core (100 * nivel)
-    float metaXP = 100.0f * heroi->getNivel();
-    lblNivelXP->setText(QString("Nível: %1 | XP: %2 / %3").arg(heroi->getNivel()).arg(xp).arg(metaXP));
+    int xp = heroi->get_experiencia();
+    int metaXP = heroi->get_exp_proximo_nivel();
+    lblNivelXP->setText(QString("Nível: %1 | XP: %2 / %3").arg(heroi->get_nivel()).arg(xp).arg(metaXP));
 
     // Barras
-    barVida->setMaximum(static_cast<int>(heroi->getMaxVida()));
-    barVida->setValue(static_cast<int>(heroi->getVida()));
-    barVida->setFormat(QString("%1/%2 HP").arg(static_cast<int>(heroi->getVida())).arg(static_cast<int>(heroi->getMaxVida())));
+    barVida->setMaximum(heroi->get_pontos_vida_max());
+    barVida->setValue(heroi->get_pontos_vida_atual());
+    barVida->setFormat(QString("%1/%2 HP").arg(heroi->get_pontos_vida_atual()).arg(heroi->get_pontos_vida_max()));
 
-    // O core herda Energia (energia e maxEnergia) de Entidade
-    // Na nossa versão, a energia base também é mantida
-    // Vamos usar getVida e recuperarVida como espelhos se necessário, mas na verdade
-    // o core tem atributos energia e maxEnergia herdados que estão protegidos.
-    barEnergia->setMaximum(static_cast<int>(heroi->getMaxEnergia()));
-    barEnergia->setValue(static_cast<int>(heroi->getEnergia()));
-    barEnergia->setFormat(QString("%1/%2 EP").arg(static_cast<int>(heroi->getEnergia())).arg(static_cast<int>(heroi->getMaxEnergia())));
+    // Gestão do recurso de energia de acordo com a classe
+    auto mago = std::dynamic_pointer_cast<Mago>(heroi);
+    auto guerreiro = std::dynamic_pointer_cast<Guerreiro>(heroi);
+    if (mago) {
+        barEnergia->setMaximum(mago->get_mana_max());
+        barEnergia->setValue(mago->get_mana_atual());
+        barEnergia->setFormat(QString("%1/%2 MP").arg(mago->get_mana_atual()).arg(mago->get_mana_max()));
+    } else if (guerreiro) {
+        barEnergia->setMaximum(100);
+        barEnergia->setValue(guerreiro->get_furia());
+        barEnergia->setFormat(QString("%1/100 Fúria").arg(guerreiro->get_furia()));
+    } else {
+        barEnergia->setMaximum(heroi->get_energia_max());
+        barEnergia->setValue(heroi->get_energia_atual());
+        barEnergia->setFormat(QString("%1/%2 EP").arg(heroi->get_energia_atual()).arg(heroi->get_energia_max()));
+    }
 }
 
-static QString obterEspecificacaoItem(Item* it) {
+static QString obterEspecificacaoItem(std::shared_ptr<Item> it) {
     if (!it) return "";
     
-    if (it->getTipo() == TipoItem::Arma) {
-        if (Arma* arma = dynamic_cast<Arma*>(it)) {
-            return QString("(+%1 dano)").arg(static_cast<int>(arma->getDanoBonus()));
+    if (it->get_tipo() == TipoItem::Arma) {
+        if (auto arma = std::dynamic_pointer_cast<Arma>(it)) {
+            return QString("(+%1 dano)").arg(arma->get_dano_bonus());
         }
-    } else if (it->getTipo() == TipoItem::Armadura) {
-        if (Armadura* armadura = dynamic_cast<Armadura*>(it)) {
-            return QString("(+%1 defesa)").arg(static_cast<int>(armadura->getDefesaBonus()));
+    } else if (it->get_tipo() == TipoItem::Armadura) {
+        if (auto armadura = std::dynamic_pointer_cast<Armadura>(it)) {
+            return QString("(+%1 defesa)").arg(armadura->get_defesa_bonus());
         }
-    } else if (it->getTipo() == TipoItem::Pocao) {
-        if (Pocao* pocao = dynamic_cast<Pocao*>(it)) {
-            return QString("(+%1 cura)").arg(static_cast<int>(pocao->getCura()));
+    } else if (it->get_tipo() == TipoItem::Pocao) {
+        if (auto pocao = std::dynamic_pointer_cast<Pocao>(it)) {
+            return QString("(+%1 cura)").arg(pocao->get_cura());
         }
-    } else if (it->getTipo() == TipoItem::PocaoEnergia) {
-        if (PocaoEnergia* pe = dynamic_cast<PocaoEnergia*>(it)) {
-            return QString("(+%1 energia)").arg(static_cast<int>(pe->getEnergiaRestaurada()));
+    } else if (it->get_tipo() == TipoItem::PocaoEnergia) {
+        if (auto pe = std::dynamic_pointer_cast<PocaoEnergia>(it)) {
+            return QString("(+%1 energia)").arg(pe->get_energia_restaurada());
         }
-    } else if (it->getTipo() == TipoItem::Bomba) {
-        if (BombaCaseira* bomba = dynamic_cast<BombaCaseira*>(it)) {
-            return QString("(+%1 dano)").arg(static_cast<int>(bomba->getDano()));
+    } else if (it->get_tipo() == TipoItem::Bomba) {
+        if (auto bomba = std::dynamic_pointer_cast<BombaCaseira>(it)) {
+            return QString("(+%1 dano)").arg(bomba->get_dano());
         }
-    } else if (it->getTipo() == TipoItem::Especial) {
-        if (ItemEspecial* ie = dynamic_cast<ItemEspecial*>(it)) {
-            return QString("(+%1 energia)").arg(static_cast<int>(ie->getBonusStatus()));
+    } else if (it->get_tipo() == TipoItem::Especial) {
+        if (auto ie = std::dynamic_pointer_cast<ItemEspecial>(it)) {
+            return QString("(+%1 energia)").arg(ie->get_bonus_status());
         }
     }
     return "";
@@ -375,14 +370,15 @@ static QString obterEspecificacaoItem(Item* it) {
 
 void MainWindow::atualizarInventario() {
     listInventario->clear();
+    auto heroi = GerenciadorJogo::get_instancia().get_heroi();
     if (!heroi) return;
 
-    Inventario& inv = heroi->getInventario();
-    for (int i = 0; i < inv.getQuantidadeItens(); ++i) {
-        Item* it = inv.getItem(i);
+    Inventario& inv = heroi->get_inventario();
+    for (int i = 0; i < inv.get_quantidade_itens(); ++i) {
+        auto it = inv.get_item(i);
         if (it) {
             QString tipoStr = "";
-            switch (it->getTipo()) {
+            switch (it->get_tipo()) {
                 case TipoItem::Arma: tipoStr = "[Arma] "; break;
                 case TipoItem::Armadura: tipoStr = "[Armadura] "; break;
                 case TipoItem::Pocao: tipoStr = "[Poção Vida] "; break;
@@ -396,10 +392,10 @@ void MainWindow::atualizarInventario() {
             }
             listInventario->addItem(QString("%1%2%3 (%4 kg) - %5")
                 .arg(tipoStr)
-                .arg(QString::fromStdString(it->getNome()))
+                .arg(QString::fromStdString(it->get_nome()))
                 .arg(spec)
-                .arg(it->getPeso())
-                .arg(QString::fromStdString(it->getDescricao())));
+                .arg(it->get_peso())
+                .arg(QString::fromStdString(it->get_descricao())));
         }
     }
 
@@ -410,26 +406,27 @@ void MainWindow::atualizarInventario() {
 
 void MainWindow::atualizarEquipados() {
     listEquipados->clear();
+    auto heroi = GerenciadorJogo::get_instancia().get_heroi();
     if (!heroi) return;
 
     // Arma equipada
-    if (Arma* arma = heroi->getArmaEquipada()) {
+    if (auto arma = heroi->get_arma_equipada()) {
         QString spec = obterEspecificacaoItem(arma);
         listEquipados->addItem(QString("[Arma] %1 %2")
-            .arg(QString::fromStdString(arma->getNome()))
+            .arg(QString::fromStdString(arma->get_nome()))
             .arg(spec));
     } else {
         listEquipados->addItem("[Arma] Nenhuma");
     }
 
     // Armaduras equipadas
-    const auto& armaduras = heroi->getArmadurasEquipadas();
+    const auto& armaduras = heroi->get_armaduras_equipadas();
     for (auto const& [slot, armadura] : armaduras) {
         if (armadura) {
             QString spec = obterEspecificacaoItem(armadura);
             listEquipados->addItem(QString("[%1] %2 %3")
                 .arg(QString::fromStdString(slot))
-                .arg(QString::fromStdString(armadura->getNome()))
+                .arg(QString::fromStdString(armadura->get_nome()))
                 .arg(spec));
         }
     }
@@ -438,14 +435,18 @@ void MainWindow::atualizarEquipados() {
 }
 
 void MainWindow::atualizarArena() {
+    auto monstroAtual = GerenciadorJogo::get_instancia().get_monstro_atual();
+    int progressoBatalha = GerenciadorJogo::get_instancia().get_progresso_batalha();
+    auto heroi = GerenciadorJogo::get_instancia().get_heroi();
+
     if (emCombate && monstroAtual) {
         lblMonstroStatus->setText(QString("Inimigo: %1 (Nv.%2)")
-            .arg(QString::fromStdString(monstroAtual->getNome()))
-            .arg(monstroAtual->getNivel()));
+            .arg(QString::fromStdString(monstroAtual->get_nome()))
+            .arg(monstroAtual->get_nivel()));
         barVidaMonstro->setEnabled(true);
-        barVidaMonstro->setMaximum(static_cast<int>(monstroAtual->getMaxVida()));
-        barVidaMonstro->setValue(static_cast<int>(monstroAtual->getVida()));
-        barVidaMonstro->setFormat(QString("%1/%2 HP").arg(static_cast<int>(monstroAtual->getVida())).arg(static_cast<int>(monstroAtual->getMaxVida())));
+        barVidaMonstro->setMaximum(monstroAtual->get_pontos_vida_max());
+        barVidaMonstro->setValue(monstroAtual->get_pontos_vida_atual());
+        barVidaMonstro->setFormat(QString("%1/%2 HP").arg(monstroAtual->get_pontos_vida_atual()).arg(monstroAtual->get_pontos_vida_max()));
         
         btnIniciarArena->setEnabled(false);
         btnAtaqueBasico->setEnabled(true);
@@ -480,15 +481,11 @@ void MainWindow::atualizarArena() {
     // Habilidades no combobox
     comboHabilidades->clear();
     if (heroi) {
-        // Preenche combobox com habilidades aprendidas
-        // Precisamos consultar as habilidades
-        // Como o heroi tem `listarHabilidades() const` que imprime, mas não expõe o vetor publicamente diretamente de forma limpa,
-        // vamos recuperar através de indexações até `escolherHabilidade`.
         int idx = 0;
         while (true) {
-            Habilidade* hab = heroi->escolherHabilidade(idx);
+            Habilidade* hab = heroi->escolher_habilidade(idx);
             if (!hab) break;
-            comboHabilidades->addItem(QString("%1 %2").arg(QString::fromStdString(hab->getNome())).arg(QString::fromStdString(hab->getEfeitoStr())));
+            comboHabilidades->addItem(QString("%1 %2").arg(QString::fromStdString(hab->get_nome())).arg(QString::fromStdString(hab->get_efeito_str())));
             idx++;
         }
     }
@@ -499,6 +496,9 @@ void MainWindow::logarInfo(const QString& msg) {
 }
 
 void MainWindow::onItemSelected() {
+    auto heroi = GerenciadorJogo::get_instancia().get_heroi();
+    if (!heroi) return;
+
     int idx = listInventario->currentRow();
     if (idx < 0) {
         btnUsarItem->setEnabled(false);
@@ -506,14 +506,14 @@ void MainWindow::onItemSelected() {
         return;
     }
 
-    Item* item = heroi->getInventario().getItem(idx);
+    auto item = heroi->get_inventario().get_item(idx);
     if (!item) {
         btnUsarItem->setEnabled(false);
         btnEquiparItem->setEnabled(false);
         return;
     }
 
-    if (item->getTipo() == TipoItem::Arma || item->getTipo() == TipoItem::Armadura) {
+    if (item->get_tipo() == TipoItem::Arma || item->get_tipo() == TipoItem::Armadura) {
         btnEquiparItem->setEnabled(true);
         btnUsarItem->setEnabled(false);
     } else {
@@ -544,39 +544,42 @@ void MainWindow::onEquipadoSelected() {
 }
 
 void MainWindow::onUsarItem() {
+    auto heroi = GerenciadorJogo::get_instancia().get_heroi();
+    if (!heroi) return;
+
     int idx = listInventario->currentRow();
     if (idx < 0) return;
 
-    Item* item = heroi->getInventario().getItem(idx);
+    auto item = heroi->get_inventario().get_item(idx);
     if (!item) return;
 
-    // Usar item
-    logarInfo("----------------------------------------");
-    item->usar(heroi, monstroAtual);
-
-    // Consumir
-    heroi->getInventario().removerItem(item);
-    delete item;
-
-    atualizarFicha();
-    atualizarInventario();
-    atualizarEquipados();
-    atualizarArena();
-    
-    if (emCombate) {
-        processarTurnoMonstro();
+    try {
+        heroi->usar_item(item->get_nome());
+        
+        atualizarFicha();
+        atualizarInventario();
+        atualizarEquipados();
+        atualizarArena();
+        
+        if (emCombate) {
+            processarTurnoMonstro();
+        }
+    } catch (const RPGException& e) {
+        QMessageBox::warning(this, "Erro", e.what());
     }
 }
 
 void MainWindow::onEquiparItem() {
+    auto heroi = GerenciadorJogo::get_instancia().get_heroi();
+    if (!heroi) return;
+
     int idx = listInventario->currentRow();
     if (idx < 0) return;
 
-    Item* item = heroi->getInventario().getItem(idx);
+    auto item = heroi->get_inventario().get_item(idx);
     if (!item) return;
 
-    logarInfo("----------------------------------------");
-    item->usar(heroi, nullptr); // Equipa o item no herói
+    heroi->equipar_item(item);
 
     atualizarFicha();
     atualizarInventario();
@@ -585,6 +588,9 @@ void MainWindow::onEquiparItem() {
 }
 
 void MainWindow::onDesequiparItem() {
+    auto heroi = GerenciadorJogo::get_instancia().get_heroi();
+    if (!heroi) return;
+
     int idx = listEquipados->currentRow();
     if (idx < 0) return;
 
@@ -594,15 +600,14 @@ void MainWindow::onDesequiparItem() {
     QString text = selected->text();
     if (text.isEmpty() || text.endsWith("Nenhuma")) return;
 
-    logarInfo("----------------------------------------");
     if (text.startsWith("[Arma]")) {
-        heroi->desequiparArma();
+        auto arma = heroi->get_arma_equipada();
+        if (arma) heroi->desequipar_item(arma->get_nome());
     } else {
-        // Encontra o slot extraindo o texto entre colchetes
         int endBracket = text.indexOf(']');
         if (endBracket > 1) {
             QString slot = text.mid(1, endBracket - 1);
-            heroi->desequiparArmadura(slot.toStdString());
+            heroi->desequipar_item(slot.toStdString());
         }
     }
 
@@ -613,42 +618,28 @@ void MainWindow::onDesequiparItem() {
 }
 
 void MainWindow::onIniciarArena() {
-    if (progressoBatalha >= 5) return;
-
-    logarInfo("========================================");
-    logarInfo(QString("INICIANDO DESAFIO %1/5 DA ARENA!").arg(progressoBatalha + 1));
-    logarInfo("========================================");
-
-    switch(progressoBatalha) {
-        case 0: monstroAtual = new Goblin(); break;
-        case 1: monstroAtual = new OrcMonstro(); break;
-        case 2: monstroAtual = new LoboMau(); break;
-        case 3: monstroAtual = new GiganteMalvado(); break;
-        case 4: monstroAtual = new PeppaPig(); break;
+    try {
+        GerenciadorJogo::get_instancia().iniciar_desafio_arena();
+        emCombate = true;
+        
+        atualizarFicha();
+        atualizarArena();
+    } catch (const RPGException& e) {
+        QMessageBox::warning(this, "Erro", e.what());
     }
-
-    // Restaurar a vida e energia do herói ao iniciar um combate na arena
-    heroi->recuperarVida(heroi->getMaxVida());
-    heroi->recuperarEnergia(heroi->getMaxEnergia());
-    atualizarFicha();
-
-    emCombate = true;
-    atualizarArena();
 }
 
 void MainWindow::onAtaqueBasico() {
+    auto heroi = GerenciadorJogo::get_instancia().get_heroi();
+    auto monstroAtual = GerenciadorJogo::get_instancia().get_monstro_atual();
+
     try {
-        if (!emCombate || !monstroAtual || !monstroAtual->isVivo()) {
+        if (!emCombate || !monstroAtual || !monstroAtual->is_vivo()) {
             throw CombateException("Nenhum inimigo válido na arena para atacar!");
         }
 
         logarInfo("----------------- TURNO JOGADOR -----------------");
-        std::cout << heroi->getNome() << " realiza um ataque básico!\n";
-        monstroAtual->receberDano(heroi->getDanoTotal());
-        
-        // Recupera 15 de energia por realizar ataque básico
-        heroi->recuperarEnergia(15.0f);
-        std::cout << heroi->getNome() << " recuperou 15 de energia pelo ataque básico.\n";
+        heroi->atacar(*monstroAtual, 0); // 0 indica ataque básico
 
         atualizarFicha();
         atualizarArena();
@@ -664,20 +655,18 @@ void MainWindow::onAtaqueBasico() {
 }
 
 void MainWindow::onUsarHabilidade() {
+    auto heroi = GerenciadorJogo::get_instancia().get_heroi();
+    auto monstroAtual = GerenciadorJogo::get_instancia().get_monstro_atual();
+
     try {
-        if (!emCombate || !monstroAtual || !monstroAtual->isVivo()) {
+        if (!emCombate || !monstroAtual || !monstroAtual->is_vivo()) {
             throw CombateException("Nenhum inimigo válido na arena para atacar!");
         }
 
         int idx = comboHabilidades->currentIndex();
-        Habilidade* hab = heroi->escolherHabilidade(idx);
-        if (!hab) return;
-
         logarInfo("----------------- TURNO JOGADOR -----------------");
-        
-        // Gasta energia da entidade, lança HabilidadeException
-        heroi->gastarEnergia(hab->getCustoEnergia());
-        hab->usar(heroi, monstroAtual);
+        heroi->atacar(*monstroAtual, idx + 1); // index + 1 indica habilidade correspondente
+
         atualizarFicha();
         atualizarArena();
         verificarFimDeCombate();
@@ -692,15 +681,18 @@ void MainWindow::onUsarHabilidade() {
 }
 
 void MainWindow::processarTurnoMonstro() {
-    if (!emCombate || !monstroAtual || !heroi->isVivo()) return;
+    auto heroi = GerenciadorJogo::get_instancia().get_heroi();
+    auto monstroAtual = GerenciadorJogo::get_instancia().get_monstro_atual();
+
+    if (!emCombate || !monstroAtual || !heroi->is_vivo()) return;
 
     logarInfo("----------------- TURNO MONSTRO -----------------");
-    float dano = monstroAtual->realizarAtaque();
-    heroi->receberDano(dano);
+    int dano = monstroAtual->realizar_ataque();
+    heroi->receber_dano(dano);
 
     atualizarFicha();
 
-    if (!heroi->isVivo()) {
+    if (!heroi->is_vivo()) {
         logarInfo("========================================");
         logarInfo("GAME OVER: Seu herói caiu na arena!");
         logarInfo("========================================");
@@ -712,55 +704,57 @@ void MainWindow::processarTurnoMonstro() {
 }
 
 void MainWindow::verificarFimDeCombate() {
+    auto heroi = GerenciadorJogo::get_instancia().get_heroi();
+    auto monstroAtual = GerenciadorJogo::get_instancia().get_monstro_atual();
+
     if (!monstroAtual) return;
 
-    if (!monstroAtual->isVivo()) {
+    if (!monstroAtual->is_vivo()) {
         logarInfo("========================================");
-        logarInfo("VITÓRIA! Você derrotou o " + QString::fromStdString(monstroAtual->getNome()));
+        logarInfo("VITÓRIA! Você derrotou o " + QString::fromStdString(monstroAtual->get_nome()));
         logarInfo("========================================");
 
-        // Experiência e drops via sobrecarga de operadores (heroi + exp e heroi + item)
-        float expGanhar = 50.0f * monstroAtual->getNivel();
+        // Experiência via sobrecarga de operadores (heroi + exp)
+        int expGanhar = 50 * monstroAtual->get_nivel();
         *heroi + expGanhar; // Adiciona XP usando operador +
 
-        // Gerar Drop Aleatório (Strategy/Factory no Combate)
+        // Gerar Drop Aleatório (Factory no Combate)
         int chance = rand() % 100;
-        Item* drop = nullptr;
+        std::shared_ptr<Item> drop = nullptr;
         if (chance < 40) {
             int tipo = rand() % 3;
-            if (tipo == 0) drop = new Pocao("Poção de Vida", "Restaura 50 de vida", 0.5f, 50.0f);
-            if (tipo == 1) drop = new PocaoEnergia("Poção de Mana", "Restaura 30 de energia", 0.5f, 30.0f);
-            if (tipo == 2) drop = new BombaCaseira("Bomba Menor", "Causa 20 de dano", 1.0f, 20.0f);
+            if (tipo == 0) drop = std::make_shared<Pocao>("Poção de Vida", "Restaura 50 de vida", 0.5, 5, 50);
+            if (tipo == 1) drop = std::make_shared<PocaoEnergia>("Poção de Mana", "Restaura 30 de energia", 0.5, 5, 30);
+            if (tipo == 2) drop = std::make_shared<BombaCaseira>("Bomba Menor", "Causa 20 de dano", 1.0, 10, 20);
         } else if (chance < 70) {
             int tipo = rand() % 4;
-            if (tipo == 0) drop = new Arma("Espada de Aço", "Arma cortante", 3.0f, 20.0f);
-            if (tipo == 1) drop = new Arma("Cajado Místico", "Arma mágica", 2.0f, 15.0f);
-            if (tipo == 2) drop = new Arma("Arco Longo", "Ataque à distância", 3.0f, 18.0f);
-            if (tipo == 3) drop = new Armadura("Escudo de Madeira", "Proteção básica", 5.0f, 10.0f);
+            if (tipo == 0) drop = std::make_shared<Arma>("Espada de Aço", "Arma cortante", 3.0, 10, 20);
+            if (tipo == 1) drop = std::make_shared<Arma>("Cajado Místico", "Arma mágica", 2.0, 12, 15);
+            if (tipo == 2) drop = std::make_shared<Arma>("Arco Longo", "Ataque à distância", 3.0, 15, 18);
+            if (tipo == 3) drop = std::make_shared<Armadura>("Escudo de Madeira", "Proteção básica", 5.0, 10, 10);
         } else {
             int tipo = rand() % 5;
-            if (tipo == 0) drop = new Armadura("Capacete de Ferro", "Protege a cabeça", 3.0f, 10.0f);
-            if (tipo == 1) drop = new Armadura("Peitoral de Aço", "Protege o torso", 8.0f, 20.0f);
-            if (tipo == 2) drop = new Armadura("Bota de Couro", "Protege os pés", 2.0f, 5.0f);
-            if (tipo == 3) drop = new Armadura("Anel da Força", "Aumenta atributos", 0.1f, 5.0f);
-            if (tipo == 4) drop = new Armadura("Colar Mágico", "Aumenta resistência", 0.2f, 8.0f);
+            if (tipo == 0) drop = std::make_shared<Armadura>("Capacete de Ferro", "Protege a cabeça", 3.0, 12, 10);
+            if (tipo == 1) drop = std::make_shared<Armadura>("Peitoral de Aço", "Protege o torso", 8.0, 30, 20);
+            if (tipo == 2) drop = std::make_shared<Armadura>("Bota de Couro", "Protege os pés", 2.0, 8, 5);
+            if (tipo == 3) drop = std::make_shared<Armadura>("Anel da Força", "Aumenta atributos", 0.1, 15, 5);
+            if (tipo == 4) drop = std::make_shared<Armadura>("Colar Mágico", "Aumenta resistência", 0.2, 20, 8);
         }
 
         if (drop) {
             try {
                 *heroi + drop; // Adiciona item usando operador +
-                logarInfo("O monstro dropou: " + QString::fromStdString(drop->getNome()) + " que foi adicionado ao seu inventário.");
+                logarInfo("O monstro dropou: " + QString::fromStdString(drop->get_nome()) + " que foi adicionado ao seu inventário.");
             } catch (const InventarioException& e) {
                 logarInfo(QString("O monstro dropou um item, mas: ") + e.what());
-                delete drop; // Evitar memory leak do item perdido
             }
         }
 
-        progressoBatalha++;
+        int progressoBatalha = GerenciadorJogo::get_instancia().get_progresso_batalha() + 1;
+        GerenciadorJogo::get_instancia().set_progresso_batalha(progressoBatalha);
         emCombate = false;
         
-        delete monstroAtual;
-        monstroAtual = nullptr;
+        GerenciadorJogo::get_instancia().set_monstro_atual(nullptr);
 
         atualizarFicha();
         atualizarInventario();
@@ -774,9 +768,11 @@ void MainWindow::verificarFimDeCombate() {
 }
 
 void MainWindow::onSalvarJogo() {
+    auto heroi = GerenciadorJogo::get_instancia().get_heroi();
+    int prog = GerenciadorJogo::get_instancia().get_progresso_batalha();
     if (!heroi || emCombate) return;
     try {
-        Persistencia::salvarJogo(heroi, "savegame.txt", progressoBatalha);
+        Persistencia::salvarJogo(heroi, "savegame.txt", prog);
         QMessageBox::information(this, "Salvar", "Jogo salvo com sucesso em savegame.txt!");
     } catch (const PersistenciaException& e) {
         QMessageBox::warning(this, "Erro", e.what());

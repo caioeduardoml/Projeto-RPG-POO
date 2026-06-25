@@ -3,10 +3,14 @@
 
 #include "Personagem.hpp"
 
+namespace RpgGame {
+
 class Arqueiro : public Personagem {
 public:
-    Arqueiro(string p_nome, Raca* p_raca, int p_nivel);
-    void subirNivel() override;
+    Arqueiro(std::string p_nome, std::shared_ptr<Raca> p_raca, int p_nivel);
+    void subir_nivel() override;
 };
+
+} // namespace RpgGame
 
 #endif // ARQUEIRO_HPP

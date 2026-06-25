@@ -3,19 +3,24 @@
 
 #include "Personagem.hpp"
 #include "Monstro.hpp"
+#include <memory>
+
+namespace RpgGame {
 
 class Batalha {
 private:
-    Personagem* heroi;
-    Monstro* monstro;
+    std::shared_ptr<Personagem> heroi;
+    std::shared_ptr<Monstro> monstro;
 
-    class Item* gerarDropAleatorio();
+    std::shared_ptr<Item> gerar_drop_aleatorio();
 
 public:
-    Batalha(Personagem* p_heroi, Monstro* p_monstro);
+    Batalha(std::shared_ptr<Personagem> p_heroi, std::shared_ptr<Monstro> p_monstro);
     
     // Executa a batalha e retorna true se o herói venceu
     bool iniciar();
 };
+
+} // namespace RpgGame
 
 #endif // BATALHA_HPP

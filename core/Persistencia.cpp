@@ -1,66 +1,56 @@
 #include "../include/Persistencia.hpp"
+#include "../include/PersonagemFactory.hpp"
+#include "../include/Exceptions.hpp"
 #include <fstream>
 #include <iostream>
-#include <string>
-#include "../include/Guerreiro.hpp"
-#include "../include/Mago.hpp"
-#include "../include/Druida.hpp"
-#include "../include/Arqueiro.hpp"
-#include "../include/Ladrao.hpp"
-#include "../include/ConstrutorEnergia.hpp"
-#include "../include/Clerigo.hpp"
-#include "../include/Raca.hpp"
-#include "../include/Exceptions.hpp"
 
-void Persistencia::salvarJogo(Personagem* personagem, const string& arquivo, int progressoBatalha) {
-    ofstream out(arquivo);
+namespace RpgGame {
+
+void Persistencia::salvarJogo(std::shared_ptr<Personagem> personagem, const std::string& arquivo, int progressoBatalha) {
+    if (!personagem) return;
+    std::ofstream out(arquivo);
     if (!out.is_open()) {
         throw PersistenciaException("Erro ao abrir arquivo para salvar!");
     }
 
-    out << "Nome:" << personagem->getNome() << "\n";
-    out << "Classe:" << personagem->getClasseRPG() << "\n";
-    if (personagem->getRaca()) {
-        out << "Raca:" << personagem->getRaca()->getNomeRaca() << "\n";
-    } else {
-        out << "Raca:Nenhuma\n";
-    }
-    out << "Nivel:" << personagem->getNivel() << "\n";
-    out << "XP:" << personagem->getExperiencia() << "\n";
-    out << "VidaMax:" << personagem->getMaxVida() << "\n";
-    out << "VidaAtual:" << personagem->getVida() << "\n";
+    out << "Nome:" << personagem->get_nome() << "\n";
+    out << "Classe:" << personagem->get_classe_rpg() << "\n";
+    out << "Raca:" << personagem->get_raca() << "\n";
+    out << "Nivel:" << personagem->get_nivel() << "\n";
+    out << "XP:" << personagem->get_experiencia() << "\n";
+    out << "VidaMax:" << personagem->get_pontos_vida_max() << "\n";
+    out << "VidaAtual:" << personagem->get_pontos_vida_atual() << "\n";
     out << "ProgressoBatalha:" << progressoBatalha << "\n";
 
     out.close();
-    cout << "Jogo salvo com sucesso em " << arquivo << "!\n";
 }
 
-Personagem* Persistencia::carregarJogo(const string& arquivo, int& progressoBatalha) {
-    ifstream in(arquivo);
+std::shared_ptr<Personagem> Persistencia::carregarJogo(const std::string& arquivo, int& progressoBatalha) {
+    std::ifstream in(arquivo);
     if (!in.is_open()) {
         throw PersistenciaException("Erro ao abrir arquivo para carregar!");
     }
 
-    string linha;
-    string nome, classe, racaStr;
+    std::string linha;
+    std::string nome, classe, racaStr;
     int nivel = 1;
-    float xp = 0.0f, vidaMax = 100.0f, vidaAtual = 100.0f;
+    int xp = 0, vidaMax = 100, vidaAtual = 100;
     int prog = 0;
 
-    while (getline(in, linha)) {
+    while (std::getline(in, linha)) {
         size_t pos = linha.find(':');
-        if (pos != string::npos) {
-            string chave = linha.substr(0, pos);
-            string valor = linha.substr(pos + 1);
+        if (pos != std::string::npos) {
+            std::string chave = linha.substr(0, pos);
+            std::string valor = linha.substr(pos + 1);
 
             if (chave == "Nome") nome = valor;
             else if (chave == "Classe") classe = valor;
             else if (chave == "Raca") racaStr = valor;
-            else if (chave == "Nivel") nivel = stoi(valor);
-            else if (chave == "XP") xp = stof(valor);
-            else if (chave == "VidaMax") vidaMax = stof(valor);
-            else if (chave == "VidaAtual") vidaAtual = stof(valor);
-            else if (chave == "ProgressoBatalha") prog = stoi(valor);
+            else if (chave == "Nivel") nivel = std::stoi(valor);
+            else if (chave == "XP") xp = std::stoi(valor);
+            else if (chave == "VidaMax") vidaMax = std::stoi(valor);
+            else if (chave == "VidaAtual") vidaAtual = std::stoi(valor);
+            else if (chave == "ProgressoBatalha") prog = std::stoi(valor);
         }
     }
     in.close();
@@ -68,29 +58,14 @@ Personagem* Persistencia::carregarJogo(const string& arquivo, int& progressoBata
     progressoBatalha = prog;
 
     if (nome.empty() || classe.empty()) {
-        throw PersistenciaException("Arquivo de savegame corrompido ou mal formatado!");
+        throw PersistenciaException("Arquivo de savegame corrompido!");
     }
 
-    Raca* raca = nullptr;
-    if (racaStr == "Humano") raca = new Humano();
-    else if (racaStr == "Elfo") raca = new Elfo();
-    else if (racaStr == "Anão") raca = new Anao();
-    else if (racaStr == "Orc") raca = new Orc();
-    else if (racaStr == "Dragão") raca = new Dragao();
-    else if (racaStr != "Nenhuma") raca = new Humano(); // Default fallback
+    // Usar o padrão Factory
+    auto p = PersonagemFactory::criar_personagem(nome, classe, racaStr, 1);
+    p->restaurar_estado(nivel, xp, vidaMax, vidaAtual);
 
-    Personagem* p = nullptr;
-    if (classe == "Guerreiro") p = new Guerreiro(nome, raca, 1);
-    else if (classe == "Mago") p = new Mago(nome, raca, 1);
-    else if (classe == "Arqueiro") p = new Arqueiro(nome, raca, 1);
-    else if (classe == "Druida") p = new Druida(nome, raca, 1);
-    else if (classe == "Ladrão") p = new Ladrao(nome, raca, 1);
-    else if (classe == "Construtor de Energia") p = new ConstrutorEnergia(nome, raca, 1);
-    else if (classe == "Clérigo") p = new Clerigo(nome, raca, 1);
-    else p = new Guerreiro(nome, raca, 1);
-
-    p->restaurarEstado(nivel, xp, vidaMax, vidaAtual);
-
-    cout << "Jogo carregado com sucesso!\n";
     return p;
 }
+
+} // namespace RpgGame

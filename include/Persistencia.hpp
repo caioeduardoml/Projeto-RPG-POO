@@ -3,22 +3,16 @@
 
 #include "Personagem.hpp"
 #include <string>
+#include <memory>
 
-using namespace std;
+namespace RpgGame {
 
 class Persistencia {
 public:
-    /**
-     * @brief Salva o estado atual do jogo.
-     * @throws PersistenciaException Em caso de erro na abertura ou gravação do arquivo.
-     */
-    static void salvarJogo(Personagem* personagem, const string& arquivo, int progressoBatalha = 0);
-
-    /**
-     * @brief Carrega um jogo salvo.
-     * @throws PersistenciaException Em caso de falha ao abrir o arquivo ou dados corrompidos.
-     */
-    static Personagem* carregarJogo(const string& arquivo, int& progressoBatalha);
+    static void salvarJogo(std::shared_ptr<Personagem> personagem, const std::string& arquivo, int progressoBatalha = 0);
+    static std::shared_ptr<Personagem> carregarJogo(const std::string& arquivo, int& progressoBatalha);
 };
+
+} // namespace RpgGame
 
 #endif // PERSISTENCIA_HPP

@@ -3,23 +3,23 @@
 
 #include <string>
 
-using namespace std;
+namespace RpgGame {
 
 class Raca {
 protected:
-    string nomeRaca;
-    float bonusVida;
-    float bonusForca;
-    float bonusInteligencia;
+    std::string nomeRaca;
+    int bonusVida;
+    int bonusForca;
+    int bonusInteligencia;
 
 public:
-    Raca(string p_nomeRaca, float p_bonusVida, float p_bonusForca, float p_bonusInteligencia);
+    Raca(std::string p_nomeRaca, int p_bonusVida, int p_bonusForca, int p_bonusInteligencia);
     virtual ~Raca() = default;
 
-    string getNomeRaca() const;
-    float getBonusVida() const;
-    float getBonusForca() const;
-    float getBonusInteligencia() const;
+    std::string get_nome_raca() const;
+    int get_bonus_vida() const;
+    int get_bonus_forca() const;
+    int get_bonus_inteligencia() const;
 };
 
 class Humano : public Raca {
@@ -46,5 +46,7 @@ class Dragao : public Raca {
 public:
     Dragao();
 };
+
+} // namespace RpgGame
 
 #endif // RACA_HPP

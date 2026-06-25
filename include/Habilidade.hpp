@@ -3,53 +3,55 @@
 
 #include <string>
 
-using namespace std;
+namespace RpgGame {
 
 class Entidade; // Forward declaration
 
 class Habilidade {
 protected:
-    string nome;
-    string descricao;
-    float custoEnergia;
+    std::string nome;
+    std::string descricao;
+    int custo_energia;
 
 public:
-    Habilidade(string p_nome, string p_descricao, float p_custoEnergia);
+    Habilidade(std::string p_nome, std::string p_descricao, int p_custo_energia);
     virtual ~Habilidade() = default;
 
-    string getNome() const;
-    string getDescricao() const;
-    float getCustoEnergia() const;
-    virtual string getEfeitoStr() const { return ""; }
+    std::string get_nome() const;
+    std::string get_descricao() const;
+    int get_custo_energia() const;
+    virtual std::string get_efeito_str() const { return ""; }
 
     virtual void usar(Entidade* usuario, Entidade* alvo) = 0;
 };
 
 class HabilidadeOfensiva : public Habilidade {
 private:
-    float danoBase;
+    int dano_base;
 public:
-    HabilidadeOfensiva(string p_nome, string p_descricao, float p_custoEnergia, float p_danoBase);
+    HabilidadeOfensiva(std::string p_nome, std::string p_descricao, int p_custo_energia, int p_dano_base);
     void usar(Entidade* usuario, Entidade* alvo) override;
-    string getEfeitoStr() const override;
+    std::string get_efeito_str() const override;
 };
 
 class HabilidadeDefensiva : public Habilidade {
 private:
-    float aumentoDefesa;
+    int aumento_defesa;
 public:
-    HabilidadeDefensiva(string p_nome, string p_descricao, float p_custoEnergia, float p_aumentoDefesa);
+    HabilidadeDefensiva(std::string p_nome, std::string p_descricao, int p_custo_energia, int p_aumento_defesa);
     void usar(Entidade* usuario, Entidade* alvo) override;
-    string getEfeitoStr() const override;
+    std::string get_efeito_str() const override;
 };
 
 class HabilidadeSuporte : public Habilidade {
 private:
-    float curaBase;
+    int cura_base;
 public:
-    HabilidadeSuporte(string p_nome, string p_descricao, float p_custoEnergia, float p_curaBase);
+    HabilidadeSuporte(std::string p_nome, std::string p_descricao, int p_custo_energia, int p_cura_base);
     void usar(Entidade* usuario, Entidade* alvo) override;
-    string getEfeitoStr() const override;
+    std::string get_efeito_str() const override;
 };
+
+} // namespace RpgGame
 
 #endif // HABILIDADE_HPP

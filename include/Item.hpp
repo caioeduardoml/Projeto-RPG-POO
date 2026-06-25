@@ -2,8 +2,9 @@
 #define ITEM_HPP
 
 #include <string>
+#include <memory>
 
-using namespace std;
+namespace RpgGame {
 
 enum class TipoItem {
     Arma,
@@ -14,77 +15,83 @@ enum class TipoItem {
     Especial
 };
 
-class Item {
+class Personagem; // Forward declaration
+
+class Item : public std::enable_shared_from_this<Item> {
 protected:
-    string nome;
-    string descricao;
-    float peso;
+    std::string nome;
+    std::string descricao;
+    double peso;
+    int valor_moedas;
     TipoItem tipo;
 
 public:
-    Item(string p_nome, string p_descricao, float p_peso, TipoItem p_tipo);
+    Item(std::string p_nome, std::string p_descricao, double p_peso, int p_valor_moedas, TipoItem p_tipo);
     virtual ~Item() = default;
 
-    string getNome() const;
-    string getDescricao() const;
-    float getPeso() const;
-    TipoItem getTipo() const;
+    std::string get_nome() const;
+    std::string get_descricao() const;
+    double get_peso() const;
+    int get_valor_moedas() const;
+    TipoItem get_tipo() const;
 
-    virtual void usar(class Entidade* usuario, class Entidade* alvo) = 0; // Método polimórfico
+    virtual void usar(Personagem& usuario) = 0;
 };
 
 class Arma : public Item {
 private:
-    float danoBonus;
+    int danoBonus;
 public:
-    Arma(string p_nome, string p_descricao, float p_peso, float p_danoBonus);
-    float getDanoBonus() const;
-    void usar(class Entidade* usuario, class Entidade* alvo) override;
+    Arma(std::string p_nome, std::string p_descricao, double p_peso, int p_valor_moedas, int p_danoBonus);
+    int get_dano_bonus() const;
+    void usar(Personagem& usuario) override;
 };
 
 class Armadura : public Item {
 private:
-    float defesaBonus;
+    int defesaBonus;
 public:
-    Armadura(string p_nome, string p_descricao, float p_peso, float p_defesaBonus);
-    float getDefesaBonus() const;
-    void usar(class Entidade* usuario, class Entidade* alvo) override;
+    Armadura(std::string p_nome, std::string p_descricao, double p_peso, int p_valor_moedas, int p_defesaBonus);
+    int get_defesa_bonus() const;
+    void usar(Personagem& usuario) override;
 };
 
 class Pocao : public Item {
 private:
-    float cura;
+    int cura;
 public:
-    Pocao(string p_nome, string p_descricao, float p_peso, float p_cura);
-    float getCura() const;
-    void usar(class Entidade* usuario, class Entidade* alvo) override;
+    Pocao(std::string p_nome, std::string p_descricao, double p_peso, int p_valor_moedas, int p_cura);
+    int get_cura() const;
+    void usar(Personagem& usuario) override;
 };
 
 class PocaoEnergia : public Item {
 private:
-    float energiaRestaurada;
+    int energiaRestaurada;
 public:
-    PocaoEnergia(string p_nome, string p_descricao, float p_peso, float p_energiaRestaurada);
-    float getEnergiaRestaurada() const;
-    void usar(class Entidade* usuario, class Entidade* alvo) override;
+    PocaoEnergia(std::string p_nome, std::string p_descricao, double p_peso, int p_valor_moedas, int p_energiaRestaurada);
+    int get_energia_restaurada() const;
+    void usar(Personagem& usuario) override;
 };
 
 class BombaCaseira : public Item {
 private:
-    float dano;
+    int dano;
 public:
-    BombaCaseira(string p_nome, string p_descricao, float p_peso, float p_dano);
-    float getDano() const;
-    void usar(class Entidade* usuario, class Entidade* alvo) override;
+    BombaCaseira(std::string p_nome, std::string p_descricao, double p_peso, int p_valor_moedas, int p_dano);
+    int get_dano() const;
+    void usar(Personagem& usuario) override;
 };
 
 class ItemEspecial : public Item {
 private:
-    float bonusStatus;
+    int bonusStatus;
 public:
-    ItemEspecial(string p_nome, string p_descricao, float p_peso, float p_bonusStatus);
-    float getBonusStatus() const;
-    void usar(class Entidade* usuario, class Entidade* alvo) override;
+    ItemEspecial(std::string p_nome, std::string p_descricao, double p_peso, int p_valor_moedas, int p_bonusStatus);
+    int get_bonus_status() const;
+    void usar(Personagem& usuario) override;
 };
+
+} // namespace RpgGame
 
 #endif // ITEM_HPP

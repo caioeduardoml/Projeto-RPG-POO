@@ -18,6 +18,7 @@
 #include <iostream>
 #include <streambuf>
 #include <string>
+#include <memory>
 
 #include "Personagem.hpp"
 #include "Monstro.hpp"
@@ -25,6 +26,7 @@
 #include "Habilidade.hpp"
 #include "Raca.hpp"
 #include "Persistencia.hpp"
+#include "Observer.hpp"
 
 // Redirecionador de std::cout para o QTextBrowser
 class QDebugStream : public std::basic_streambuf<char> {
@@ -54,12 +56,9 @@ private:
     QTextBrowser *log_window;
 };
 
-class MainWindow : public QMainWindow {
+class MainWindow : public QMainWindow, public RpgGame::CombateObserver {
     Q_OBJECT
 private:
-    Personagem* heroi;
-    int progressoBatalha;
-    Monstro* monstroAtual;
     bool emCombate;
 
     QDebugStream* streamRedirector;
@@ -101,9 +100,12 @@ private:
 
 public:
     MainWindow(QWidget *parent = nullptr);
-    ~MainWindow();
+    ~MainWindow() override;
 
     bool mostrarWelcomeDialog();
+
+    // Implementação da interface CombateObserver (Observer Pattern)
+    void aoAcontecerEvento(const std::string& log) override;
 
 private slots:
     void onUsarItem();
