@@ -13,7 +13,7 @@ SRCS = $(wildcard $(CORE_DIR)/*.cpp) $(wildcard $(CORE_DIR)/Herois/*.cpp) $(wild
 OBJS = $(addprefix $(OBJ_DIR)/, $(notdir $(SRCS:.cpp=.o)))
 
 # MOC de cabeçalhos Qt
-MOC = moc
+MOC = $(shell command -v moc-qt5 || echo moc)
 MOC_SRC = $(SRC_DIR)/moc_MainWindow.cpp
 
 GUI_SRCS = $(SRC_DIR)/main.cpp $(SRC_DIR)/MainWindow.cpp $(MOC_SRC)
