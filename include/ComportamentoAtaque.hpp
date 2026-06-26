@@ -8,7 +8,18 @@ namespace RpgGame {
 class ComportamentoAtaque {
 public:
     virtual ~ComportamentoAtaque() = default;
+
+    /**
+     * @brief Retorna o nome do ataque executado.
+     */
     virtual std::string get_nome_ataque() const = 0;
+
+    /**
+     * @brief Calcula o dano do ataque com base nos atributos do atacante.
+     * @param forca Força física do atacante.
+     * @param inteligencia Inteligência mágica do atacante.
+     * @return Dano total calculado.
+     */
     virtual int calcular_dano(int forca, int inteligencia) = 0;
 };
 

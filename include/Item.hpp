@@ -26,6 +26,14 @@ protected:
     TipoItem tipo;
 
 public:
+    /**
+     * @brief Construtor padrão da classe Item.
+     * @param p_nome Nome do item.
+     * @param p_descricao Descrição textual.
+     * @param p_peso Peso em Kg.
+     * @param p_valor_moedas Valor de compra/venda.
+     * @param p_tipo Tipo enumerado (Arma, Poção, etc).
+     */
     Item(std::string p_nome, std::string p_descricao, double p_peso, int p_valor_moedas, TipoItem p_tipo);
     virtual ~Item() = default;
 
@@ -35,6 +43,10 @@ public:
     int get_valor_moedas() const;
     TipoItem get_tipo() const;
 
+    /**
+     * @brief Método virtual puro que aplica os efeitos do item no personagem.
+     * @param usuario Personagem que utilizará o item.
+     */
     virtual void usar(Personagem& usuario) = 0;
 };
 
