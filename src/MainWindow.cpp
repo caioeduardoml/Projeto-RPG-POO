@@ -3,6 +3,11 @@
 #include "../include/GerenciadorJogo.hpp"
 #include "../include/Mago.hpp"
 #include "../include/Guerreiro.hpp"
+#include "../include/Arqueiro.hpp"
+#include "../include/Clerigo.hpp"
+#include "../include/Druida.hpp"
+#include "../include/Ladrao.hpp"
+#include "../include/ConstrutorEnergia.hpp"
 #include "../include/Exceptions.hpp"
 
 #include <QMessageBox>
@@ -322,6 +327,12 @@ void MainWindow::atualizarFicha() {
     // Gestão do recurso de energia de acordo com a classe
     auto mago = std::dynamic_pointer_cast<Mago>(heroi);
     auto guerreiro = std::dynamic_pointer_cast<Guerreiro>(heroi);
+    auto arqueiro = std::dynamic_pointer_cast<Arqueiro>(heroi);
+    auto clerigo = std::dynamic_pointer_cast<Clerigo>(heroi);
+    auto druida = std::dynamic_pointer_cast<Druida>(heroi);
+    auto ladrao = std::dynamic_pointer_cast<Ladrao>(heroi);
+    auto construtor = std::dynamic_pointer_cast<ConstrutorEnergia>(heroi);
+
     if (mago) {
         barEnergia->setMaximum(mago->get_mana_max());
         barEnergia->setValue(mago->get_mana_atual());
@@ -330,6 +341,26 @@ void MainWindow::atualizarFicha() {
         barEnergia->setMaximum(100);
         barEnergia->setValue(guerreiro->get_furia());
         barEnergia->setFormat(QString("%1/100 Fúria").arg(guerreiro->get_furia()));
+    } else if (arqueiro) {
+        barEnergia->setMaximum(100);
+        barEnergia->setValue(arqueiro->get_esquiva());
+        barEnergia->setFormat(QString("%1% Esquiva").arg(arqueiro->get_esquiva()));
+    } else if (clerigo) {
+        barEnergia->setMaximum(clerigo->get_fe_max());
+        barEnergia->setValue(clerigo->get_fe_atual());
+        barEnergia->setFormat(QString("%1/%2 Fé").arg(clerigo->get_fe_atual()).arg(clerigo->get_fe_max()));
+    } else if (druida) {
+        barEnergia->setMaximum(100);
+        barEnergia->setValue(druida->get_comunhao());
+        barEnergia->setFormat(QString("%1/100 Comunhão").arg(druida->get_comunhao()));
+    } else if (ladrao) {
+        barEnergia->setMaximum(100);
+        barEnergia->setValue(ladrao->get_furtividade());
+        barEnergia->setFormat(QString("%1/100 Furtividade").arg(ladrao->get_furtividade()));
+    } else if (construtor) {
+        barEnergia->setMaximum(100);
+        barEnergia->setValue(construtor->get_barreira_energia());
+        barEnergia->setFormat(QString("%1/100 Barreira").arg(construtor->get_barreira_energia()));
     } else {
         barEnergia->setMaximum(heroi->get_energia_max());
         barEnergia->setValue(heroi->get_energia_atual());
