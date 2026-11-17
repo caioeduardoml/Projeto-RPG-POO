@@ -48,7 +48,7 @@ void Ladrao::receber_dano(int dano) {
 
     int mitigado = 0;
     if (furtividade > 0 && danoLiquido > 0) {
-        mitigado = static_cast<int>(danoLiquido * 0.3f);
+        mitigado = static_cast<int>(static_cast<float>(danoLiquido) * 0.3f);
         furtividade -= 25;
         if (furtividade < 0) furtividade = 0;
         danoLiquido -= mitigado;

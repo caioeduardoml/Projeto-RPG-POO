@@ -1,7 +1,12 @@
 CXX = g++
-CXXFLAGS = -Wall -Wextra -std=c++17 -Iinclude $(shell pkg-config --cflags Qt5Widgets)
+STRICT_FLAGS = -Wall -Wextra -Wpedantic -Wshadow -Wconversion
+QT_CFLAGS = $(shell pkg-config --cflags Qt5Widgets | sed 's/-I/-isystem /g')
+CXXFLAGS = $(STRICT_FLAGS) -std=c++17 -Iinclude $(QT_CFLAGS)
+CORE_CXXFLAGS = $(STRICT_FLAGS) -std=c++17 -Iinclude
 LDFLAGS = $(shell pkg-config --libs Qt5Widgets)
 TEST_LDFLAGS = -lgtest -lgtest_main -pthread
+ASAN_FLAGS = -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer
+RELEASE_FLAGS = -O3 -DNDEBUG
 
 SRC_DIR = src
 CORE_DIR = core
@@ -27,9 +32,18 @@ TEST_TARGET = test_rpg
 
 VPATH = $(SRC_DIR) $(CORE_DIR) $(CORE_DIR)/Herois $(CORE_DIR)/Monstros $(TEST_DIR)
 
-.PHONY: all clean test
+.PHONY: all debug release test test-asan clean
 
 all: $(TARGET)
+
+debug: CXXFLAGS += $(ASAN_FLAGS)
+debug: CORE_CXXFLAGS += $(ASAN_FLAGS)
+debug: LDFLAGS += -fsanitize=address,undefined
+debug: clean $(TARGET)
+
+release: CXXFLAGS += $(RELEASE_FLAGS)
+release: CORE_CXXFLAGS += $(RELEASE_FLAGS)
+release: clean $(TARGET)
 
 $(TARGET): $(OBJS) $(GUI_OBJS)
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
@@ -38,9 +52,14 @@ $(MOC_SRC): include/MainWindow.hpp
 	$(MOC) $< -o $@
 
 $(TEST_TARGET): $(OBJS) $(TEST_OBJS)
-	$(CXX) $(filter-out $(shell pkg-config --cflags Qt5Widgets), $(CXXFLAGS)) -o $@ $^ $(TEST_LDFLAGS)
+	$(CXX) $(CORE_CXXFLAGS) -o $@ $^ $(TEST_LDFLAGS)
 
 test: $(TEST_TARGET)
+	./$(TEST_TARGET)
+
+test-asan: CORE_CXXFLAGS += $(ASAN_FLAGS)
+test-asan: TEST_LDFLAGS += -fsanitize=address,undefined
+test-asan: clean $(TEST_TARGET)
 	./$(TEST_TARGET)
 
 $(OBJ_DIR)/%.o: %.cpp | $(OBJ_DIR)
@@ -51,4 +70,3 @@ $(OBJ_DIR):
 
 clean:
 	rm -rf $(OBJ_DIR) $(TARGET) $(TEST_TARGET) savegame.txt $(MOC_SRC)
-

@@ -20,22 +20,22 @@ public:
      * @param inteligencia Inteligência mágica do atacante.
      * @return Dano total calculado.
      */
-    virtual int calcular_dano(int forca, int inteligencia) = 0;
+    virtual int calcular_dano(int forca, int inteligencia) const = 0;
 };
 
 class AtaqueFisicoFeroz : public ComportamentoAtaque {
 public:
     std::string get_nome_ataque() const override { return "Ataque Físico Feroz"; }
-    int calcular_dano(int forca, int /*inteligencia*/) override {
-        return static_cast<int>(forca * 1.5f);
+    int calcular_dano(int forca, int /*inteligencia*/) const override {
+        return static_cast<int>(static_cast<float>(forca) * 1.5f);
     }
 };
 
 class AtaqueMagicoArcano : public ComportamentoAtaque {
 public:
     std::string get_nome_ataque() const override { return "Ataque Mágico Arcano"; }
-    int calcular_dano(int /*forca*/, int inteligencia) override {
-        return static_cast<int>(inteligencia * 2.0f);
+    int calcular_dano(int /*forca*/, int inteligencia) const override {
+        return static_cast<int>(static_cast<float>(inteligencia) * 2.0f);
     }
 };
 

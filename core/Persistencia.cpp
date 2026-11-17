@@ -37,21 +37,25 @@ std::shared_ptr<Personagem> Persistencia::carregarJogo(const std::string& arquiv
     int xp = 0, vidaMax = 100, vidaAtual = 100;
     int prog = 0;
 
-    while (std::getline(in, linha)) {
-        size_t pos = linha.find(':');
-        if (pos != std::string::npos) {
-            std::string chave = linha.substr(0, pos);
-            std::string valor = linha.substr(pos + 1);
+    try {
+        while (std::getline(in, linha)) {
+            size_t pos = linha.find(':');
+            if (pos != std::string::npos) {
+                std::string chave = linha.substr(0, pos);
+                std::string valor = linha.substr(pos + 1);
 
-            if (chave == "Nome") nome = valor;
-            else if (chave == "Classe") classe = valor;
-            else if (chave == "Raca") racaStr = valor;
-            else if (chave == "Nivel") nivel = std::stoi(valor);
-            else if (chave == "XP") xp = std::stoi(valor);
-            else if (chave == "VidaMax") vidaMax = std::stoi(valor);
-            else if (chave == "VidaAtual") vidaAtual = std::stoi(valor);
-            else if (chave == "ProgressoBatalha") prog = std::stoi(valor);
+                if (chave == "Nome") nome = valor;
+                else if (chave == "Classe") classe = valor;
+                else if (chave == "Raca") racaStr = valor;
+                else if (chave == "Nivel") nivel = std::stoi(valor);
+                else if (chave == "XP") xp = std::stoi(valor);
+                else if (chave == "VidaMax") vidaMax = std::stoi(valor);
+                else if (chave == "VidaAtual") vidaAtual = std::stoi(valor);
+                else if (chave == "ProgressoBatalha") prog = std::stoi(valor);
+            }
         }
+    } catch (const std::exception& e) {
+        throw PersistenciaException(std::string("Dados numericos invalidos no arquivo de savegame: ") + e.what());
     }
     in.close();
 

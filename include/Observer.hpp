@@ -28,7 +28,7 @@ public:
      * @param obs Ponteiro para o observer.
      */
     void registrarObserver(CombateObserver* obs) {
-        if (obs) {
+        if (obs && std::find(observers.begin(), observers.end(), obs) == observers.end()) {
             observers.push_back(obs);
         }
     }

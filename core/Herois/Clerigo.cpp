@@ -51,7 +51,7 @@ void Clerigo::receber_dano(int dano) {
 
     int mitigado = 0;
     if (fe_atual >= 15 && danoLiquido > 0) {
-        mitigado = static_cast<int>(danoLiquido * 0.3f);
+        mitigado = static_cast<int>(static_cast<float>(danoLiquido) * 0.3f);
         fe_atual -= 15;
         danoLiquido -= mitigado;
     }

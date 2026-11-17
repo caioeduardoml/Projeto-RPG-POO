@@ -1,4 +1,5 @@
 #include "../include/MainWindow.hpp"
+#include "../include/Batalha.hpp"
 #include "../include/PersonagemFactory.hpp"
 #include "../include/GerenciadorJogo.hpp"
 #include "../include/Mago.hpp"
@@ -170,15 +171,14 @@ MainWindow::MainWindow(QWidget *parent)
     connect(btnUsarHabilidade, &QPushButton::clicked, this, &MainWindow::onUsarHabilidade);
     connect(btnSalvar, &QPushButton::clicked, this, &MainWindow::onSalvarJogo);
 
-    // Redirecionador do std::cout
-    streamRedirector = new QDebugStream(std::cout, textLogs);
+    // Redirecionador do std::cout via RAII
+    streamRedirector = std::make_unique<QDebugStream>(std::cout, textLogs);
 
     // Registrar no Subject como Observer
     GerenciadorJogo::get_instancia().registrarObserver(this);
 }
 
 MainWindow::~MainWindow() {
-    delete streamRedirector;
     GerenciadorJogo::get_instancia().removerObserver(this);
 }
 
@@ -749,28 +749,8 @@ void MainWindow::verificarFimDeCombate() {
         int expGanhar = 50 * monstroAtual->get_nivel();
         *heroi + expGanhar; // Adiciona XP usando operador +
 
-        // Gerar Drop Aleatório (Factory no Combate)
-        int chance = rand() % 100;
-        std::shared_ptr<Item> drop = nullptr;
-        if (chance < 40) {
-            int tipo = rand() % 3;
-            if (tipo == 0) drop = std::make_shared<Pocao>("Poção de Vida", "Restaura 50 de vida", 0.5, 5, 50);
-            if (tipo == 1) drop = std::make_shared<PocaoEnergia>("Poção de Mana", "Restaura 30 de energia", 0.5, 5, 30);
-            if (tipo == 2) drop = std::make_shared<BombaCaseira>("Bomba Menor", "Causa 20 de dano", 1.0, 10, 20);
-        } else if (chance < 70) {
-            int tipo = rand() % 4;
-            if (tipo == 0) drop = std::make_shared<Arma>("Espada de Aço", "Arma cortante", 3.0, 10, 20);
-            if (tipo == 1) drop = std::make_shared<Arma>("Cajado Místico", "Arma mágica", 2.0, 12, 15);
-            if (tipo == 2) drop = std::make_shared<Arma>("Arco Longo", "Ataque à distância", 3.0, 15, 18);
-            if (tipo == 3) drop = std::make_shared<Armadura>("Escudo de Madeira", "Proteção básica", 5.0, 10, 10);
-        } else {
-            int tipo = rand() % 5;
-            if (tipo == 0) drop = std::make_shared<Armadura>("Capacete de Ferro", "Protege a cabeça", 3.0, 12, 10);
-            if (tipo == 1) drop = std::make_shared<Armadura>("Peitoral de Aço", "Protege o torso", 8.0, 30, 20);
-            if (tipo == 2) drop = std::make_shared<Armadura>("Bota de Couro", "Protege os pés", 2.0, 8, 5);
-            if (tipo == 3) drop = std::make_shared<Armadura>("Anel da Força", "Aumenta atributos", 0.1, 15, 5);
-            if (tipo == 4) drop = std::make_shared<Armadura>("Colar Mágico", "Aumenta resistência", 0.2, 20, 8);
-        }
+        // Gerar Drop Aleatorio reutilizando a fabrica centralizada de Batalha
+        std::shared_ptr<Item> drop = Batalha::gerar_drop_aleatorio();
 
         if (drop) {
             try {

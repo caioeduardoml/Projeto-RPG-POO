@@ -40,12 +40,12 @@ public:
         m_stream.rdbuf(m_old_buf);
     }
 protected:
-    virtual int_type overflow(int_type v) {
+    int_type overflow(int_type v) override {
         if (v == '\n') {
             log_window->append(QString::fromStdString(m_string));
             m_string.erase();
         } else if (v != EOF) {
-            m_string += (char)v;
+            m_string += static_cast<char>(v);
         }
         return v;
     }
@@ -61,7 +61,7 @@ class MainWindow : public QMainWindow, public RpgGame::CombateObserver {
 private:
     bool emCombate;
 
-    QDebugStream* streamRedirector;
+    std::unique_ptr<QDebugStream> streamRedirector;
 
     // Painel Herói
     QLabel* lblNome;

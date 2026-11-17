@@ -12,9 +12,9 @@ Personagem::Personagem(std::string p_nome, std::string p_classe_rpg, std::shared
       raca(p_raca ? p_raca->get_nome_raca() : "Nenhuma"),
       classe_rpg(p_classe_rpg),
       experiencia(0),
-      exp_proximo_nivel(100 * p_nivel),
       inventario(50.0), // 50kg de capacidade inicial
       objeto_raca(p_raca),
+      exp_proximo_nivel(100 * p_nivel),
       forca(p_forca + (p_raca ? p_raca->get_bonus_forca() : 0)),
       inteligencia(p_inteligencia + (p_raca ? p_raca->get_bonus_inteligencia() : 0)),
       armaEquipada(nullptr) {

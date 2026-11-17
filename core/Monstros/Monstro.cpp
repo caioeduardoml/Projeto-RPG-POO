@@ -29,7 +29,7 @@ int Monstro::realizar_ataque() const {
     
     std::string log = nome + " ataca ferozmente!";
     GerenciadorJogo::get_instancia().notificar(log);
-    return static_cast<int>(forca * 1.5f);
+    return static_cast<int>(static_cast<float>(forca) * 1.5f);
 }
 
 void Monstro::set_comportamento_ataque(std::shared_ptr<ComportamentoAtaque> comp) {

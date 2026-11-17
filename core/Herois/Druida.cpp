@@ -49,7 +49,7 @@ void Druida::receber_dano(int dano) {
     int danoLiquido = dano - defesa;
     if (danoLiquido < 0) danoLiquido = 0;
 
-    int absorvido = static_cast<int>(danoLiquido * 0.2f);
+    int absorvido = static_cast<int>(static_cast<float>(danoLiquido) * 0.2f);
     danoLiquido -= absorvido;
 
     pontos_vida_atual -= danoLiquido;

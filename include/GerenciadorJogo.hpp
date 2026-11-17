@@ -10,7 +10,6 @@ namespace RpgGame {
 
 class GerenciadorJogo : public Subject {
 private:
-    static std::unique_ptr<GerenciadorJogo> instancia;
     std::shared_ptr<Personagem> heroi;
     std::shared_ptr<Monstro> monstro_atual;
     int progresso_batalha;
@@ -18,14 +17,18 @@ private:
     GerenciadorJogo();
 
 public:
+    ~GerenciadorJogo() override = default;
+
     /**
-     * @brief Retorna a instância única (Singleton) do gerenciador de jogo.
+     * @brief Retorna a instância única (Meyers' Singleton, thread-safe em C++11+) do gerenciador de jogo.
      * @return GerenciadorJogo& Referência para a instância.
      */
     static GerenciadorJogo& get_instancia();
-    // Deletar construtor de cópia e operador de atribuição para garantir Singleton
+    // Deletar construtor de cópia, movimentação e atribuição para garantir Singleton
     GerenciadorJogo(const GerenciadorJogo&) = delete;
     GerenciadorJogo& operator=(const GerenciadorJogo&) = delete;
+    GerenciadorJogo(GerenciadorJogo&&) = delete;
+    GerenciadorJogo& operator=(GerenciadorJogo&&) = delete;
 
     /**
      * @brief Obtém o herói atual.

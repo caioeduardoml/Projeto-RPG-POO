@@ -2,7 +2,7 @@
 #include "../include/Item.hpp"
 #include "../include/Exceptions.hpp"
 #include <iostream>
-#include <cstdlib>
+#include <random>
 
 namespace RpgGame {
 
@@ -127,25 +127,35 @@ bool Batalha::iniciar() {
 }
 
 std::shared_ptr<Item> Batalha::gerar_drop_aleatorio() {
-    int chance = rand() % 100;
-    if (chance < 40) { // 40% chance de consumível
-        int tipo = rand() % 3;
-        if (tipo == 0) return std::make_shared<Pocao>("Poção de Vida", "Restaura 50 de vida", 0.5, 5, 50.0f);
-        if (tipo == 1) return std::make_shared<PocaoEnergia>("Poção de Mana", "Restaura 30 de energia", 0.5, 5, 30.0f);
-        if (tipo == 2) return std::make_shared<BombaCaseira>("Bomba Menor", "Causa 20 de dano", 1.0, 10, 20.0f);
+    // Gerador thread-local evita estado global compartilhado e vies de modulo do rand()
+    thread_local std::mt19937 rng(std::random_device{}());
+    std::uniform_int_distribution<int> distChance(0, 99);
+    const int chance = distChance(rng);
+
+    if (chance < 40) { // 40% chance de consumivel
+        std::uniform_int_distribution<int> distTipo(0, 2);
+        switch (distTipo(rng)) {
+            case 0: return std::make_shared<Pocao>("Poção de Vida", "Restaura 50 de vida", 0.5, 5, 50);
+            case 1: return std::make_shared<PocaoEnergia>("Poção de Mana", "Restaura 30 de energia", 0.5, 5, 30);
+            case 2: return std::make_shared<BombaCaseira>("Bomba Menor", "Causa 20 de dano", 1.0, 10, 20);
+        }
     } else if (chance < 70) { // 30% chance de arma/escudo
-        int tipo = rand() % 4;
-        if (tipo == 0) return std::make_shared<Arma>("Espada de Aço", "Arma cortante", 3.0, 10, 20.0f);
-        if (tipo == 1) return std::make_shared<Arma>("Cajado Místico", "Arma mágica", 2.0, 12, 15.0f);
-        if (tipo == 2) return std::make_shared<Arma>("Arco Longo", "Ataque à distância", 3.0, 15, 18.0f);
-        if (tipo == 3) return std::make_shared<Armadura>("Escudo de Madeira", "Proteção básica", 5.0, 8, 10.0f);
-    } else { // 30% chance de armadura/acessório
-        int tipo = rand() % 5;
-        if (tipo == 0) return std::make_shared<Armadura>("Capacete de Ferro", "Protege a cabeça", 3.0, 10, 10.0f);
-        if (tipo == 1) return std::make_shared<Armadura>("Peitoral de Aço", "Protege o torso", 8.0, 25, 20.0f);
-        if (tipo == 2) return std::make_shared<Armadura>("Bota de Couro", "Protege os pés", 2.0, 6, 5.0f);
-        if (tipo == 3) return std::make_shared<Armadura>("Anel da Força", "Aumenta atributos", 0.1, 15, 5.0f);
-        if (tipo == 4) return std::make_shared<Armadura>("Colar Mágico", "Aumenta resistência", 0.2, 18, 8.0f);
+        std::uniform_int_distribution<int> distTipo(0, 3);
+        switch (distTipo(rng)) {
+            case 0: return std::make_shared<Arma>("Espada de Aço", "Arma cortante", 3.0, 10, 20);
+            case 1: return std::make_shared<Arma>("Cajado Místico", "Arma mágica", 2.0, 12, 15);
+            case 2: return std::make_shared<Arma>("Arco Longo", "Ataque à distância", 3.0, 15, 18);
+            case 3: return std::make_shared<Armadura>("Escudo de Madeira", "Proteção básica", 5.0, 10, 10);
+        }
+    } else { // 30% chance de armadura/acessorio
+        std::uniform_int_distribution<int> distTipo(0, 4);
+        switch (distTipo(rng)) {
+            case 0: return std::make_shared<Armadura>("Capacete de Ferro", "Protege a cabeça", 3.0, 12, 10);
+            case 1: return std::make_shared<Armadura>("Peitoral de Aço", "Protege o torso", 8.0, 30, 20);
+            case 2: return std::make_shared<Armadura>("Bota de Couro", "Protege os pés", 2.0, 8, 5);
+            case 3: return std::make_shared<Armadura>("Anel da Força", "Aumenta atributos", 0.1, 15, 5);
+            case 4: return std::make_shared<Armadura>("Colar Mágico", "Aumenta resistência", 0.2, 20, 8);
+        }
     }
     return nullptr;
 }

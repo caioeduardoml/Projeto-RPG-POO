@@ -6,7 +6,10 @@
 namespace RpgGame {
 
 Inventario::Inventario(double p_capacidade) 
-    : capacidade_peso_max(p_capacidade), peso_atual(0.0f) {}
+    : capacidade_peso_max(p_capacidade), peso_atual(0.0) {
+    // Reserva capacidade inicial para reduzir realocacoes de memoria contigua
+    itens.reserve(16);
+}
 
 bool Inventario::adicionar_item(std::shared_ptr<Item> item) {
     if (!item) return false;
@@ -80,7 +83,7 @@ std::shared_ptr<Item> Inventario::get_item(int indice) const {
 }
 
 int Inventario::get_quantidade_itens() const {
-    return itens.size();
+    return static_cast<int>(itens.size());
 }
 
 } // namespace RpgGame
